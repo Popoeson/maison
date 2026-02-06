@@ -13,7 +13,7 @@
     "cloudinary",
     "maison"
   ],
-  "author": "Your Name",
+  "author": "Popeson",
   "license": "ISC",
   "dependencies": {
     "cloudinary": "^1.40.0",
