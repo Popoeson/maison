@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MAISON Admin Panel</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== THEME ===================== */
+:root{
+  --bg-main: #F5F0E1;
+  --bg-soft: #EFE9D8;
+
+  --glass-bg: rgba(255,255,255,0.55);
+  --glass-border: rgba(255,255,255,0.35);
+  --glass-dark: rgba(25,25,25,0.55);
+
+  --text-dark: #2A2A2A;
+  --text-muted: #6F6F6F;
+  --text-light: #FFFFFF;
+
+  --accent-olive: #6B8E23;
+  --accent-olive-soft: rgba(107,142,35,0.15);
+
+  --success: #6FAE7B;
+  --warning: #D6B85A;
+  --info: #6C8CBF;
+  --purple: #8B7BBE;
+
+  --blur: blur(18px);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  min-height:100vh;
+  background: var(--bg-main);
+  color: var(--text-dark);
+  font-family: "Inter", sans-serif;
+}
+
+/* ===================== LAYOUT ===================== */
+.admin-wrapper{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar{
+  width:260px;
+  position:fixed;
+  inset:0 auto 0 0;
+  background: var(--glass-dark);
+  backdrop-filter: var(--blur);
+  border-right:1px solid rgba(255,255,255,0.2);
+  padding:28px 18px;
+  color: var(--text-light);
+  z-index:1000;
+  transition: transform .3s ease;
+}
+
+.sidebar h2{
+  font-family:"Playfair Display", serif;
+  letter-spacing:1px;
+  margin-bottom:40px;
+}
+
+.sidebar ul{
+  list-style:none;
+}
+
+.sidebar li{
+  padding:14px 16px;
+  border-radius:14px;
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+.sidebar li.active,
+.sidebar li:hover{
+  background: rgba(255,255,255,0.18);
+}
+
+/* ===================== OVERLAY ===================== */
+#overlay{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  z-index:900;
+}
+
+#overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* ===================== MAIN ===================== */
+.main{
+  margin-left:260px;
+  padding:28px;
+  width:100%;
+}
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 22px;
+  margin-bottom:28px;
+}
+
+.topbar strong{
+  font-family:"Playfair Display", serif;
+  letter-spacing:.8px;
+}
+
+.hamburger{
+  display:none;
+  font-size:22px;
+  cursor:pointer;
+}
+
+/* ===================== GLASS ===================== */
+.glass{
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  border:1px solid var(--glass-border);
+  border-radius:22px;
+}
+
+/* ===================== DASHBOARD ===================== */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:22px;
+  margin-bottom:32px;
+}
+
+.metric{
+  padding:22px;
+}
+
+.metric h4{
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  color: var(--text-muted);
+}
+
+.metric p{
+  font-size:28px;
+  font-weight:600;
+  margin-top:8px;
+}
+
+/* ===================== TABLE ===================== */
+.table-wrapper{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:600px;
+}
+
+th,td{
+  padding:16px;
+  text-align:left;
+  font-size:14px;
+}
+
+th{
+  color: var(--text-muted);
+  font-weight:500;
+}
+
+tr:not(:last-child){
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+
+/* ===================== BUTTON ===================== */
+.btn{
+  padding:10px 22px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  background: var(--accent-olive);
+  color:#fff;
+  font-weight:500;
+}
+
+.btn:hover{
+  background:#5E7F1F;
+}
+
+/* ===================== PAGES ===================== */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===================== FOOTER ===================== */
+.footer{
+  margin-top:40px;
+  padding:16px;
+  text-align:center;
+  font-size:14px;
+  color: var(--text-muted);
+}
+
+/* ===================== MODAL ===================== */
+.modal{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
+}
+
+.modal-content{
+  width:90%;
+  max-width:480px;
+  padding:26px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.modal-content h3{
+  font-family:"Playfair Display", serif;
+  margin-bottom:8px;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.1);
+  background:#fff;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media(max-width:900px){
+  .metrics{grid-template-columns:repeat(2,1fr);}
+}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.show{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:block;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+  <aside class="sidebar" id="sidebar">
+    <h2>MAISON</h2>
+    <ul>
+      <li class="active" onclick="showPage('dashboard', this)">Dashboard</li>
+      <li onclick="showPage('products', this)">Products</li>
+      <li onclick="showPage('orders', this)">Orders</li>
+    </ul>
+  </aside>
+
+  <div id="overlay"></div>
+
+  <main class="main">
+
+    <div class="topbar glass">
+      <span class="hamburger" onclick="toggleSidebar()">☰</span>
+      <strong>MAISON ADMIN PANEL</strong>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page active">
+      <div class="metrics">
+        <div class="metric glass"><h4>Total Revenue</h4><p id="totalRevenue">$0</p></div>
+        <div class="metric glass"><h4>Total Orders</h4><p id="totalOrders">0</p></div>
+        <div class="metric glass"><h4>Total Products</h4><p id="totalProducts">0</p></div>
+        <div class="metric glass"><h4>Avg Order Value</h4><p id="avgOrder">$0</p></div>
+      </div>
+
+      <div class="glass table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTable">
+            <!-- Orders from backend -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="products" class="page">
+      <div style="display:flex;justify-content:space-between;margin-bottom:18px;">
+        <h3 style="font-family:'Playfair Display',serif;">Products</h3>
+        <button class="btn" onclick="openModal('add')">+ Add Product</button>
+      </div>
+
+      <div class="glass table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Main Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTable">
+            <!-- Products from backend -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="orders" class="page">
+      <div class="glass table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="ordersList">
+            <!-- Orders from backend -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="footer glass">← Back to Store</div>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content glass">
+    <h3 id="modalTitle">Add Product</h3>
+    <input type="text" id="productName" placeholder="Product Name">
+    <input type="number" id="productPrice" placeholder="Price">
+    <input type="number" id="productQuantity" placeholder="Quantity">
+    <select id="productCategory">
+      <option>Apparel</option>
+      <option>Home</option>
+      <option>Accessories</option>
+    </select>
+    <textarea id="productDescription" placeholder="Description"></textarea>
+    <input type="number" id="imageCount" placeholder="Number of images (min 1)" min="1" max="5">
+    <div id="imageInputs"></div>
+    <button class="btn" id="modalBtn">Create Product</button>
+    <button class="btn" style="background:#ccc;color:#333;" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modalTitle");
+const modalBtn = document.getElementById("modalBtn");
+
+let editProductId = null;
+
+function toggleSidebar(){
+  sidebar.classList.toggle("show");
+  overlay.classList.toggle("show");
+}
+
+overlay.addEventListener("click", ()=>{
+  sidebar.classList.remove("show");
+  overlay.classList.remove("show");
+});
+
+function showPage(id, el){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll(".sidebar li").forEach(li=>li.classList.remove("active"));
+  el.classList.add("active");
+
+  sidebar.classList.remove("show");
+  overlay.classList.remove("show");
+}
+
+function openModal(mode='add', product={}){
+  modal.style.display="flex";
+  editProductId = null;
+
+  document.getElementById("productName").value = product.name || '';
+  document.getElementById("productPrice").value = product.price || '';
+  document.getElementById("productQuantity").value = product.quantity || '';
+  document.getElementById("productCategory").value = product.category || 'Apparel';
+  document.getElementById("productDescription").value = product.description || '';
+  document.getElementById("imageCount").value = '';
+  document.getElementById("imageInputs").innerHTML = '';
+
+  modalTitle.innerText = mode==='add' ? 'Add Product' : 'Edit Product';
+  modalBtn.innerText = mode==='add' ? 'Create Product' : 'Save Changes';
+  if(mode==='edit') editProductId = product._id;
+}
+
+function closeModal(){
+  modal.style.display="none";
+}
+
+// Dynamic image input fields
+document.getElementById("imageCount").addEventListener("input", (e)=>{
+  const count = Number(e.target.value);
+  const container = document.getElementById("imageInputs");
+  container.innerHTML='';
+  for(let i=0;i<count;i++){
+    const input = document.createElement("input");
+    input.type='file';
+    input.name='images';
+    input.required = i===0; // main image required
+    container.appendChild(input);
+  }
+});
+
+// ===================== BACKEND INTEGRATION =====================
+
+const API_BASE = 'https://<YOUR_RENDER_BACKEND_URL>'; // <-- replace with your render backend
+
+async function fetchProducts(){
+  const res = await fetch(`${API_BASE}/api/products`);
+  const data = await res.json();
+  const tbody = document.getElementById("productsTable");
+  tbody.innerHTML='';
+  data.forEach(p=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML=`
+      <td><img src="${p.mainImage}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td>
+      <td>${p.name}</td>
+      <td>${p.category}</td>
+      <td>$${p.price}</td>
+      <td>${p.quantity}</td>
+      <td>
+        <button class="btn" onclick='editProduct("${JSON.stringify(p)}")'>✏️</button>
+        <button class="btn" style="background:#D9534F;" onclick='deleteProduct("${p._id}")'>🗑</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteProduct(id){
+  if(!confirm('Delete this product?')) return;
+  await fetch(`${API_BASE}/api/products/${id}`, { method:'DELETE' });
+  fetchProducts();
+}
+
+function editProduct(product){
+  openModal('edit', JSON.parse(product));
+}
+
+modalBtn.addEventListener('click', async ()=>{
+  const formData = new FormData();
+  formData.append('name', document.getElementById('productName').value);
+  formData.append('price', document.getElementById('productPrice').value);
+  formData.append('quantity', document.getElementById('productQuantity').value);
+  formData.append('category', document.getElementById('productCategory').value);
+  formData.append('description', document.getElementById('productDescription').value);
+
+  const files = document.querySelectorAll('#imageInputs input[type="file"]');
+  files.forEach(file=>formData.append('images', file.files[0]));
+
+  if(editProductId){
+    await fetch(`${API_BASE}/api/products/${editProductId}`, { method:'PUT', body: formData });
+  }else{
+    await fetch(`${API_BASE}/api/products`, { method:'POST', body: formData });
+  }
+
+  closeModal();
+  fetchProducts();
+});
+
+// Initial fetch
+fetchProducts();
+</script>
+
+</body>
+  </html>
