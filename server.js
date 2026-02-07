@@ -10,7 +10,13 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: "https://maison-puce.vercel.app", // frontend domain
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // if sending cookies/auth headers
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // =====================
