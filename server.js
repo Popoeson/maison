@@ -178,6 +178,68 @@ app.put('/api/products/:id', upload.array('images', 5), async (req,res)=>{
   }
 });
 
+//=====================
+// HERO SECTION 
+//=====================
+
+//--- CREATE HERO -----
+app.post('/api/hero-images', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded' });
+    }
+
+    const result = await uploadHeroToCloudinary(req.file.buffer);
+
+    const hero = new HeroImage({
+      imageUrl: result.secure_url,
+      isActive: req.body.isActive === 'true' || req.body.isActive === true
+    });
+
+    await hero.save();
+    res.status(201).json(hero);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//----- FETCH HERO -----
+app.get('/api/hero-images', async (req, res) => {
+  try {
+    const heroes = await HeroImage.find().sort({ createdAt: -1 });
+    res.json(heroes);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//---- ACTIVATE/DEACTIVATE HERO
+app.patch('/api/hero-images/:id/toggle', async (req, res) => {
+  try {
+    const hero = await HeroImage.findById(req.params.id);
+    if (!hero) return res.status(404).json({ error: 'Hero image not found' });
+
+    hero.isActive = !hero.isActive;
+    await hero.save();
+
+    res.json(hero);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+//---- DELETE HERO----
+app.delete('/api/hero-images/:id', async (req, res) => {
+  try {
+    await HeroImage.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Hero image deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // =====================
 // Start Server
 // =====================
