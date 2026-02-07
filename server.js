@@ -54,6 +54,16 @@ const productSchema = new mongoose.Schema({
 const Product = mongoose.model('Product', productSchema);
 
 // =====================
+// Hero Image Schema
+// =====================
+const heroImageSchema = new mongoose.Schema({
+  imageUrl: { type: String, required: true },
+  isActive: { type: Boolean, default: false },
+}, { timestamps: true });
+
+const HeroImage = mongoose.model('HeroImage', heroImageSchema);
+
+// =====================
 // Multer Config
 // =====================
 const storage = multer.memoryStorage();
@@ -66,6 +76,19 @@ const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder: 'maison_products' },
+      (error, result) => {
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+};
+
+const uploadHeroToCloudinary = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'maison_hero' },
       (error, result) => {
         if (result) resolve(result);
         else reject(error);
