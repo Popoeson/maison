@@ -5,265 +5,128 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MAISON Admin Panel</title>
 
-<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-/* ===================== THEME ===================== */
 :root{
-  --bg-main: #F5F0E1;
-  --bg-soft: #EFE9D8;
-
-  --glass-bg: rgba(255,255,255,0.55);
-  --glass-border: rgba(255,255,255,0.35);
-  --glass-dark: rgba(25,25,25,0.55);
-
-  --text-dark: #2A2A2A;
-  --text-muted: #6F6F6F;
-  --text-light: #FFFFFF;
-
-  --accent-olive: #6B8E23;
-  --accent-olive-soft: rgba(107,142,35,0.15);
-
-  --success: #6FAE7B;
-  --warning: #D6B85A;
-  --info: #6C8CBF;
-  --purple: #8B7BBE;
-
-  --blur: blur(18px);
+  --bg-main:#F5F0E1;
+  --glass-bg:rgba(255,255,255,0.55);
+  --glass-border:rgba(255,255,255,0.35);
+  --glass-dark:rgba(25,25,25,0.55);
+  --text-dark:#2A2A2A;
+  --text-muted:#6F6F6F;
+  --accent-olive:#6B8E23;
+  --success:#6FAE7B;
+  --error:#D9534F;
+  --blur:blur(18px);
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-  min-height:100vh;
-  background: var(--bg-main);
-  color: var(--text-dark);
-  font-family: "Inter", sans-serif;
+  background:var(--bg-main);
+  font-family:Inter,sans-serif;
+  color:var(--text-dark);
 }
 
-/* ===================== LAYOUT ===================== */
-.admin-wrapper{
-  display:flex;
-  min-height:100vh;
-}
+/* LAYOUT */
+.admin-wrapper{display:flex;min-height:100vh}
 
-/* ===================== SIDEBAR ===================== */
+/* SIDEBAR */
 .sidebar{
-  width:260px;
-  position:fixed;
-  inset:0 auto 0 0;
-  background: var(--glass-dark);
-  backdrop-filter: var(--blur);
-  border-right:1px solid rgba(255,255,255,0.2);
-  padding:28px 18px;
-  color: var(--text-light);
-  z-index:1000;
-  transition: transform .3s ease;
+  width:260px;position:fixed;inset:0 auto 0 0;
+  background:var(--glass-dark);
+  backdrop-filter:var(--blur);
+  color:#fff;padding:28px 18px;z-index:1000
 }
-
-.sidebar h2{
-  font-family:"Playfair Display", serif;
-  letter-spacing:1px;
-  margin-bottom:40px;
-}
-
-.sidebar ul{
-  list-style:none;
-}
-
+.sidebar h2{font-family:"Playfair Display";margin-bottom:40px}
 .sidebar li{
-  padding:14px 16px;
-  border-radius:14px;
-  margin-bottom:10px;
-  cursor:pointer;
+  list-style:none;padding:14px;border-radius:14px;
+  cursor:pointer;margin-bottom:10px
 }
+.sidebar li:hover,.sidebar li.active{background:rgba(255,255,255,0.18)}
 
-.sidebar li.active,
-.sidebar li:hover{
-  background: rgba(255,255,255,0.18);
-}
+.main{margin-left:260px;padding:28px;width:100%}
 
-/* ===================== OVERLAY ===================== */
-#overlay{
-  position:fixed;
-  inset:0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(2px);
-  opacity:0;
-  pointer-events:none;
-  transition:.3s;
-  z-index:900;
-}
-
-#overlay.show{
-  opacity:1;
-  pointer-events:auto;
-}
-
-/* ===================== MAIN ===================== */
-.main{
-  margin-left:260px;
-  padding:28px;
-  width:100%;
-}
-
-/* ===================== TOPBAR ===================== */
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:18px 22px;
-  margin-bottom:28px;
-}
-
-.topbar strong{
-  font-family:"Playfair Display", serif;
-  letter-spacing:.8px;
-}
-
-.hamburger{
-  display:none;
-  font-size:22px;
-  cursor:pointer;
-}
-
-/* ===================== GLASS ===================== */
+/* GLASS */
 .glass{
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
+  background:var(--glass-bg);
+  backdrop-filter:var(--blur);
   border:1px solid var(--glass-border);
   border-radius:22px;
 }
 
-/* ===================== DASHBOARD ===================== */
-.metrics{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:22px;
-  margin-bottom:32px;
-}
-
-.metric{
-  padding:22px;
-}
-
-.metric h4{
-  font-size:13px;
-  text-transform:uppercase;
-  letter-spacing:.8px;
-  color: var(--text-muted);
-}
-
-.metric p{
-  font-size:28px;
-  font-weight:600;
-  margin-top:8px;
-}
-
-/* ===================== TABLE ===================== */
-.table-wrapper{
-  overflow-x:auto;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:600px;
-}
-
-th,td{
-  padding:16px;
-  text-align:left;
-  font-size:14px;
-}
-
-th{
-  color: var(--text-muted);
-  font-weight:500;
-}
-
-tr:not(:last-child){
-  border-bottom:1px solid rgba(0,0,0,0.08);
-}
-
-/* ===================== BUTTON ===================== */
+/* BUTTON */
 .btn{
-  padding:10px 22px;
-  border-radius:999px;
-  border:none;
-  cursor:pointer;
-  background: var(--accent-olive);
-  color:#fff;
-  font-weight:500;
+  padding:10px 22px;border-radius:999px;
+  border:none;cursor:pointer;
+  background:var(--accent-olive);
+  color:#fff;font-weight:500
 }
 
-.btn:hover{
-  background:#5E7F1F;
-}
+/* TABLE */
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:16px;font-size:14px}
+th{color:var(--text-muted)}
+tr:not(:last-child){border-bottom:1px solid rgba(0,0,0,.08)}
+.table-wrapper{overflow-x:auto}
 
-/* ===================== PAGES ===================== */
-.page{display:none;}
-.page.active{display:block;}
-
-/* ===================== FOOTER ===================== */
-.footer{
-  margin-top:40px;
-  padding:16px;
-  text-align:center;
-  font-size:14px;
-  color: var(--text-muted);
-}
-
-/* ===================== MODAL ===================== */
+/* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
-  background: rgba(0,0,0,.45);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:2000;
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:none;align-items:center;justify-content:center;z-index:2000
 }
-
 .modal-content{
-  width:90%;
-  max-width:480px;
-  padding:26px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
+  width:90%;max-width:500px;padding:26px;
+  display:flex;flex-direction:column;gap:12px
+}
+.modal-content input,textarea,select{
+  padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,.1)
 }
 
-.modal-content h3{
-  font-family:"Playfair Display", serif;
-  margin-bottom:8px;
+/* IMAGE PREVIEW */
+.image-preview{display:flex;gap:12px;flex-wrap:wrap}
+.preview-box{
+  position:relative
+}
+.preview-box img{
+  width:80px;height:80px;object-fit:cover;
+  border-radius:14px;border:1px solid rgba(0,0,0,.15)
+}
+.preview-box label{
+  position:absolute;bottom:-6px;left:50%;
+  transform:translateX(-50%);
+  font-size:11px;background:#fff;
+  padding:3px 6px;border-radius:8px
 }
 
-.modal-content input,
-.modal-content textarea,
-.modal-content select{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,0.1);
-  background:#fff;
+/* LOADING */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(245,240,225,.6);
+  backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:3000
 }
-
-/* ===================== RESPONSIVE ===================== */
-@media(max-width:900px){
-  .metrics{grid-template-columns:repeat(2,1fr);}
+.spinner{
+  width:60px;height:60px;border-radius:50%;
+  border:4px solid rgba(0,0,0,.15);
+  border-top:4px solid var(--accent-olive);
+  animation:spin 1s linear infinite
 }
+@keyframes spin{to{transform:rotate(360deg)}}
 
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%);}
-  .sidebar.show{transform:translateX(0);}
-  .main{margin-left:0;}
-  .hamburger{display:block;}
+/* TOAST */
+.toast{
+  position:fixed;bottom:30px;right:30px;
+  padding:14px 22px;border-radius:16px;
+  color:#fff;font-size:14px;
+  backdrop-filter:blur(12px);
+  animation:slideIn .4s ease;
+  z-index:4000
+}
+.toast.success{background:rgba(107,142,35,.85)}
+.toast.error{background:rgba(217,83,79,.85)}
+@keyframes slideIn{
+  from{transform:translateY(20px);opacity:0}
+  to{transform:translateY(0);opacity:1}
 }
 </style>
 </head>
@@ -271,246 +134,123 @@ tr:not(:last-child){
 <body>
 
 <div class="admin-wrapper">
-
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar">
     <h2>MAISON</h2>
-    <ul>
-      <li class="active" onclick="showPage('dashboard', this)">Dashboard</li>
-      <li onclick="showPage('products', this)">Products</li>
-      <li onclick="showPage('orders', this)">Orders</li>
-    </ul>
+    <li class="active">Products</li>
   </aside>
 
-  <div id="overlay"></div>
-
   <main class="main">
-
-    <div class="topbar glass">
-      <span class="hamburger" onclick="toggleSidebar()">☰</span>
+    <div class="glass" style="padding:18px;margin-bottom:20px">
       <strong>MAISON ADMIN PANEL</strong>
     </div>
 
-    <!-- DASHBOARD -->
-    <section id="dashboard" class="page active">
-      <div class="metrics">
-        <div class="metric glass"><h4>Total Revenue</h4><p id="totalRevenue">$0</p></div>
-        <div class="metric glass"><h4>Total Orders</h4><p id="totalOrders">0</p></div>
-        <div class="metric glass"><h4>Total Products</h4><p id="totalProducts">0</p></div>
-        <div class="metric glass"><h4>Avg Order Value</h4><p id="avgOrder">$0</p></div>
-      </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:18px">
+      <h3 style="font-family:'Playfair Display'">Products</h3>
+      <button class="btn" onclick="openModal()">+ Add Product</button>
+    </div>
 
-      <div class="glass table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Customer</th>
-              <th>Status</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="ordersTable">
-            <!-- Orders from backend -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- PRODUCTS -->
-    <section id="products" class="page">
-      <div style="display:flex;justify-content:space-between;margin-bottom:18px;">
-        <h3 style="font-family:'Playfair Display',serif;">Products</h3>
-        <button class="btn" onclick="openModal('add')">+ Add Product</button>
-      </div>
-
-      <div class="glass table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Main Image</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Quantity</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="productsTable">
-            <!-- Products from backend -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ORDERS -->
-    <section id="orders" class="page">
-      <div class="glass table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="ordersList">
-            <!-- Orders from backend -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <div class="footer glass">← Back to Store</div>
-
+    <div class="glass table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Main Image</th><th>Name</th><th>Price</th><th>Qty</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productsTable"></tbody>
+      </table>
+    </div>
   </main>
 </div>
 
 <!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-content glass">
-    <h3 id="modalTitle">Add Product</h3>
-    <input type="text" id="productName" placeholder="Product Name">
-    <input type="number" id="productPrice" placeholder="Price">
-    <input type="number" id="productQuantity" placeholder="Quantity">
-    <select id="productCategory">
-      <option>Apparel</option>
-      <option>Home</option>
-      <option>Accessories</option>
-    </select>
-    <textarea id="productDescription" placeholder="Description"></textarea>
-    <input type="number" id="imageCount" placeholder="Number of images (min 1)" min="1" max="5">
+    <h3>Add Product</h3>
+
+    <input id="name" placeholder="Name">
+    <input id="price" type="number" placeholder="Price">
+    <input id="qty" type="number" placeholder="Quantity">
+    <input id="imgCount" type="number" min="1" max="5" placeholder="Number of images">
+
     <div id="imageInputs"></div>
-    <button class="btn" id="modalBtn">Create Product</button>
-    <button class="btn" style="background:#ccc;color:#333;" onclick="closeModal()">Cancel</button>
+    <div class="image-preview" id="preview"></div>
+
+    <button class="btn" onclick="saveProduct()">Save</button>
+    <button class="btn" style="background:#ccc;color:#333" onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+
 <script>
-const sidebar = document.getElementById("sidebar");
-const overlay = document.getElementById("overlay");
-const modal = document.getElementById("modal");
-const modalTitle = document.getElementById("modalTitle");
-const modalBtn = document.getElementById("modalBtn");
+const API='https://maison-90o3.onrender.com'
+const modal=document.getElementById('modal')
+const loading=document.getElementById('loading')
+const preview=document.getElementById('preview')
 
-let editProductId = null;
+let mainIndex=0
 
-function toggleSidebar(){
-  sidebar.classList.toggle("show");
-  overlay.classList.toggle("show");
+function toast(msg,type='success'){
+  const t=document.createElement('div')
+  t.className=`toast ${type}`
+  t.innerText=msg
+  document.body.appendChild(t)
+  setTimeout(()=>t.remove(),3000)
 }
 
-overlay.addEventListener("click", ()=>{
-  sidebar.classList.remove("show");
-  overlay.classList.remove("show");
-});
+function openModal(){modal.style.display='flex'}
+function closeModal(){modal.style.display='none'}
 
-function showPage(id, el){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+imgCount.oninput=e=>{
+  imageInputs.innerHTML=''
+  preview.innerHTML=''
+  mainIndex=0
 
-  document.querySelectorAll(".sidebar li").forEach(li=>li.classList.remove("active"));
-  el.classList.add("active");
+  for(let i=0;i<e.target.value;i++){
+    const input=document.createElement('input')
+    input.type='file'
+    input.accept='image/*'
 
-  sidebar.classList.remove("show");
-  overlay.classList.remove("show");
-}
-
-function openModal(mode='add', product={}){
-  modal.style.display="flex";
-  editProductId = null;
-
-  document.getElementById("productName").value = product.name || '';
-  document.getElementById("productPrice").value = product.price || '';
-  document.getElementById("productQuantity").value = product.quantity || '';
-  document.getElementById("productCategory").value = product.category || 'Apparel';
-  document.getElementById("productDescription").value = product.description || '';
-  document.getElementById("imageCount").value = '';
-  document.getElementById("imageInputs").innerHTML = '';
-
-  modalTitle.innerText = mode==='add' ? 'Add Product' : 'Edit Product';
-  modalBtn.innerText = mode==='add' ? 'Create Product' : 'Save Changes';
-  if(mode==='edit') editProductId = product._id;
-}
-
-function closeModal(){
-  modal.style.display="none";
-}
-
-// Dynamic image input fields
-document.getElementById("imageCount").addEventListener("input", (e)=>{
-  const count = Number(e.target.value);
-  const container = document.getElementById("imageInputs");
-  container.innerHTML='';
-  for(let i=0;i<count;i++){
-    const input = document.createElement("input");
-    input.type='file';
-    input.name='images';
-    input.required = i===0; // main image required
-    container.appendChild(input);
+    input.onchange=()=>{
+      const box=document.createElement('div')
+      box.className='preview-box'
+      box.innerHTML=`
+        <img src="${URL.createObjectURL(input.files[0])}">
+        <label>
+          <input type="radio" name="mainImg" ${i===0?'checked':''}
+            onchange="mainIndex=${i}">
+          Main
+        </label>
+      `
+      preview.appendChild(box)
+    }
+    imageInputs.appendChild(input)
   }
-});
-
-// ===================== BACKEND INTEGRATION =====================
-
-const API_BASE = 'https://maison-90o3.onrender.com';
-
-async function fetchProducts(){
-  const res = await fetch(`${API_BASE}/api/products`);
-  const data = await res.json();
-  const tbody = document.getElementById("productsTable");
-  tbody.innerHTML='';
-  data.forEach(p=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML=`
-      <td><img src="${p.mainImage}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td>
-      <td>${p.name}</td>
-      <td>${p.category}</td>
-      <td>$${p.price}</td>
-      <td>${p.quantity}</td>
-      <td>
-        <button class="btn" onclick='editProduct("${JSON.stringify(p)}")'>✏️</button>
-        <button class="btn" style="background:#D9534F;" onclick='deleteProduct("${p._id}")'>🗑</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
 }
 
-async function deleteProduct(id){
-  if(!confirm('Delete this product?')) return;
-  await fetch(`${API_BASE}/api/products/${id}`, { method:'DELETE' });
-  fetchProducts();
-}
+async function saveProduct(){
+  try{
+    loading.style.display='flex'
+    const fd=new FormData()
+    fd.append('name',name.value)
+    fd.append('price',price.value)
+    fd.append('quantity',qty.value)
+    fd.append('mainIndex',mainIndex)
 
-function editProduct(product){
-  openModal('edit', JSON.parse(product));
-}
+    document.querySelectorAll('#imageInputs input').forEach(i=>{
+      if(i.files[0]) fd.append('images',i.files[0])
+    })
 
-modalBtn.addEventListener('click', async ()=>{
-  const formData = new FormData();
-  formData.append('name', document.getElementById('productName').value);
-  formData.append('price', document.getElementById('productPrice').value);
-  formData.append('quantity', document.getElementById('productQuantity').value);
-  formData.append('category', document.getElementById('productCategory').value);
-  formData.append('description', document.getElementById('productDescription').value);
-
-  const files = document.querySelectorAll('#imageInputs input[type="file"]');
-  files.forEach(file=>formData.append('images', file.files[0]));
-
-  if(editProductId){
-    await fetch(`${API_BASE}/api/products/${editProductId}`, { method:'PUT', body: formData });
-  }else{
-    await fetch(`${API_BASE}/api/products`, { method:'POST', body: formData });
+    await fetch(`${API}/api/products`,{method:'POST',body:fd})
+    toast('Product saved successfully')
+    closeModal()
+  }catch{
+    toast('Something went wrong','error')
+  }finally{
+    loading.style.display='none'
   }
-
-  closeModal();
-  fetchProducts();
-});
-
-// Initial fetch
-fetchProducts();
+}
 </script>
 
 </body>
-  </html>
+</html>
