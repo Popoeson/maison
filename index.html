@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAISON • Boutique</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500,600&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== THEME ===================== */
+:root{
+  --bg-main:#F5F0E1;
+  --glass-bg:rgba(255,255,255,0.55);
+  --glass-border:rgba(255,255,255,0.35);
+  --text-dark:#2A2A2A;
+  --text-light:#fff;
+  --accent-olive:#6B8E23;
+  --blur:blur(18px);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Inter",sans-serif;color:var(--text-dark);background:var(--bg-main);}
+a{text-decoration:none;color:inherit;}
+h1,h2,h3,h4,h5,h6{font-family:"Playfair Display",serif;}
+
+/* ===================== NAVBAR ===================== */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:24px 36px;
+  background:rgba(255,255,255,0.9);
+  position:fixed;
+  width:100%;
+  z-index:999;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+.navbar a{margin-left:24px;font-weight:500;letter-spacing:0.5px;}
+.navbar .logo{font-size:24px;font-weight:600;letter-spacing:2px;}
+
+/* ===================== HERO ===================== */
+.hero{
+  position:relative;
+  width:100%;
+  height:90vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-light);
+  text-align:center;
+  overflow:hidden;
+}
+.hero img{
+  position:absolute;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition: opacity 1s ease-in-out;
+  opacity:0;
+}
+.hero img.active{opacity:1;}
+.hero-content{
+  position:relative;
+  z-index:2;
+  max-width:600px;
+}
+.hero-content h1{font-size:3rem;margin-bottom:12px;line-height:1.1;}
+.hero-content p{font-size:1.1rem;margin-bottom:18px;}
+.hero-content .btn{
+  padding:12px 28px;
+  border-radius:999px;
+  border:none;
+  background:var(--accent-olive);
+  color:#fff;
+  cursor:pointer;
+  font-weight:500;
+}
+
+/* ===================== PRODUCTS ===================== */
+.section{
+  padding:80px 24px;
+  max-width:1100px;
+  margin:auto;
+}
+.section h2{
+  font-size:2rem;
+  text-align:center;
+  margin-bottom:40px;
+}
+.product-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:28px;
+}
+.product-card{
+  background:#fff;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 4px 15px rgba(0,0,0,0.05);
+  transition:transform 0.3s;
+}
+.product-card:hover{transform:translateY(-5px);}
+.product-card img{
+  width:100%;
+  height:260px;
+  object-fit:cover;
+}
+.product-info{
+  padding:16px;
+}
+.product-info h3{
+  font-size:1.1rem;
+  margin-bottom:6px;
+}
+.product-info p{
+  font-size:0.95rem;
+  color:#555;
+  margin-bottom:4px;
+}
+.product-info span{
+  font-weight:600;
+  color:var(--accent-olive);
+}
+
+/* ===================== FOOTER ===================== */
+.footer{
+  background:#222;
+  color:#fff;
+  padding:60px 24px;
+  text-align:center;
+}
+.footer h3{font-size:1.2rem;margin-bottom:12px;}
+.footer p, .footer a{font-size:0.95rem;color:#ccc;margin-bottom:6px;display:block;}
+.footer a:hover{color:#fff;}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="logo">MAISON</div>
+  <div>
+    <a href="#">Shop</a>
+    <a href="#">About</a>
+    <a href="#">Journal</a>
+    <a href="#">Contact</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="heroSection">
+  <!-- Hero images will be injected here via JS -->
+  <div class="hero-content">
+    <h1>Curated Essentials for Modern Living</h1>
+    <p>Timeless design, sustainable materials, and craftsmanship that speaks for itself.</p>
+    <button class="btn">Shop Now</button>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="section">
+  <h2>Featured Products</h2>
+  <div class="product-grid" id="productGrid">
+    <!-- Products will be injected here via JS -->
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <h3>MAISON</h3>
+  <p>A curated boutique for the modern minimalist. Quality over quantity, always.</p>
+  <div>
+    <a href="#">All Products</a>
+    <a href="#">New Arrivals</a>
+    <a href="#">Home Goods</a>
+    <a href="#">Accessories</a>
+  </div>
+  <p>©2024 Maison Boutique. All rights reserved.</p>
+</footer>
+
+<script>
+const API_BASE='https://maison-90o3.onrender.com';
+
+/* ===================== HERO ===================== */
+async function fetchHeroes(){
+  const res = await fetch(`${API_BASE}/api/hero-images`);
+  const data = await res.json();
+  const heroSection = document.getElementById('heroSection');
+  heroSection.innerHTML = '<div class="hero-content">' + heroSection.innerHTML + '</div>';
+
+  let index = 0;
+  const activeImages = data.filter(h => h.isActive);
+  if(activeImages.length === 0) return;
+
+  // Inject images
+  activeImages.forEach((h,i)=>{
+    const img = document.createElement('img');
+    img.src = h.imageUrl;
+    if(i===0) img.classList.add('active');
+    heroSection.appendChild(img);
+  });
+
+  // Carousel effect
+  setInterval(()=>{
+    const images = heroSection.querySelectorAll('img');
+    images.forEach(img => img.classList.remove('active'));
+    images[index].classList.add('active');
+    index = (index+1) % images.length;
+  }, 5000);
+}
+
+/* ===================== PRODUCTS ===================== */
+async function fetchProducts(){
+  const res = await fetch(`${API_BASE}/api/products`);
+  const data = await res.json();
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '';
+
+  data.forEach(p => {
+    grid.innerHTML += `
+      <div class="product-card">
+        <img src="${p.mainImage}" alt="${p.name}">
+        <div class="product-info">
+          <h3>${p.name}</h3>
+          <p>${p.category}</p>
+          <span>$${p.price}</span>
+        </div>
+      </div>
+    `;
+  });
+}
+
+/* ===================== INIT ===================== */
+fetchHeroes();
+fetchProducts();
+</script>
+
+</body>
+</html>
