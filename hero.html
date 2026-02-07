@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MAISON • Hero Images</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== THEME ===================== */
+:root{
+  --bg-main:#F5F0E1;
+  --glass-bg:rgba(255,255,255,0.55);
+  --glass-border:rgba(255,255,255,255,0.35);
+  --glass-dark:rgba(25,25,25,0.55);
+  --text-dark:#2A2A2A;
+  --text-muted:#6F6F6F;
+  --text-light:#fff;
+  --accent-olive:#6B8E23;
+  --blur:blur(18px);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  min-height:100vh;
+  background:var(--bg-main);
+  font-family:"Inter",sans-serif;
+  color:var(--text-dark);
+}
+
+/* ===================== LAYOUT ===================== */
+.wrapper{
+  max-width:1100px;
+  margin:auto;
+  padding:28px;
+}
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 22px;
+  margin-bottom:28px;
+}
+
+.topbar strong{
+  font-family:"Playfair Display",serif;
+  letter-spacing:.8px;
+}
+
+/* ===================== GLASS ===================== */
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:var(--blur);
+  border:1px solid var(--glass-border);
+  border-radius:22px;
+}
+
+/* ===================== BUTTON ===================== */
+.btn{
+  padding:10px 22px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  background:var(--accent-olive);
+  color:#fff;
+  font-weight:500;
+}
+.btn.danger{background:#C0392B}
+.btn.muted{background:#ccc;color:#333}
+
+/* ===================== HERO GRID ===================== */
+.hero-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:18px;
+}
+
+.hero-card{
+  position:relative;
+}
+
+.hero-card img{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  border-radius:16px;
+}
+
+.hero-badge{
+  position:absolute;
+  top:10px;
+  left:10px;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:var(--accent-olive);
+  color:#fff;
+}
+
+.hero-actions{
+  display:flex;
+  gap:6px;
+  margin-top:10px;
+}
+
+/* ===================== FORM ===================== */
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* ===================== TOAST ===================== */
+.toast{
+  position:fixed;
+  top:24px;
+  right:24px;
+  padding:14px 22px;
+  border-radius:14px;
+  background:var(--glass-bg);
+  backdrop-filter:var(--blur);
+  border:1px solid var(--glass-border);
+  font-weight:500;
+  z-index:5000;
+  animation:slideIn .3s ease;
+}
+.toast.error{color:#C0392B}
+
+@keyframes slideIn{
+  from{transform:translateY(-10px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+
+/* ===================== LOADING ===================== */
+.loading-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(3px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:6000;
+}
+
+.spinner{
+  width:38px;
+  height:38px;
+  border:4px solid rgba(0,0,0,.1);
+  border-top-color:var(--accent-olive);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <!-- TOPBAR -->
+  <div class="topbar glass">
+    <strong>MAISON • Hero Images</strong>
+    <button class="btn muted" onclick="window.location.href='admin.html'">
+      ← Back to Admin
+    </button>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="glass" style="padding:24px;margin-bottom:28px">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:14px">
+      Upload Hero Image
+    </h3>
+
+    <div class="form-group">
+      <input type="file" id="heroFile" accept="image/*">
+      <label style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="heroActive">
+        Set image as active
+      </label>
+      <button class="btn" onclick="uploadHero()">Upload Image</button>
+    </div>
+  </div>
+
+  <!-- HERO LIST -->
+  <div class="glass" style="padding:24px">
+    <h3 style="font-family:'Playfair Display',serif;margin-bottom:18px">
+      Hero Images
+    </h3>
+
+    <div id="heroGrid" class="hero-grid"></div>
+  </div>
+
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+</div>
+
+<script>
+const API_BASE='https://maison-90o3.onrender.com';
+const loading=document.getElementById('loading');
+
+/* ===================== TOAST ===================== */
+function toast(msg,type='success'){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+/* ===================== HERO ===================== */
+async function uploadHero(){
+  const file=document.getElementById('heroFile').files[0];
+  if(!file) return toast('Please select an image','error');
+
+  loading.style.display='flex';
+
+  const fd=new FormData();
+  fd.append('image',file);
+  fd.append('isActive',document.getElementById('heroActive').checked);
+
+  try{
+    await fetch(`${API_BASE}/api/hero-images`,{
+      method:'POST',
+      body:fd
+    });
+
+    toast('Hero image uploaded');
+    document.getElementById('heroFile').value='';
+    document.getElementById('heroActive').checked=false;
+    fetchHeroes();
+  }catch{
+    toast('Upload failed','error');
+  }finally{
+    loading.style.display='none';
+  }
+}
+
+async function fetchHeroes(){
+  const res=await fetch(`${API_BASE}/api/hero-images`);
+  const data=await res.json();
+  const grid=document.getElementById('heroGrid');
+  grid.innerHTML='';
+
+  data.forEach(h=>{
+    grid.innerHTML+=`
+      <div class="hero-card">
+        <img src="${h.imageUrl}">
+        ${h.isActive?'<div class="hero-badge">Active</div>':''}
+        <div class="hero-actions">
+          <button class="btn" onclick="toggleHero('${h._id}')">
+            ${h.isActive?'Deactivate':'Activate'}
+          </button>
+          <button class="btn danger" onclick="deleteHero('${h._id}')">
+            Delete
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+async function toggleHero(id){
+  loading.style.display='flex';
+  await fetch(`${API_BASE}/api/hero-images/${id}/toggle`,{method:'PATCH'});
+  loading.style.display='none';
+  fetchHeroes();
+}
+
+async function deleteHero(id){
+  if(!confirm('Delete this hero image?')) return;
+  loading.style.display='flex';
+  await fetch(`${API_BASE}/api/hero-images/${id}`,{method:'DELETE'});
+  loading.style.display='none';
+  toast('Hero image deleted');
+  fetchHeroes();
+}
+
+fetchHeroes();
+</script>
+
+</body>
+</html>
