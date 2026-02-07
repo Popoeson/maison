@@ -614,13 +614,27 @@ async function fetchProducts(){
 }
 
 async function deleteProduct(id){
-  await fetch(`${API_BASE}/api/products/${id}`, { method:'DELETE' });
-  toast('Product deleted');
-  fetchProducts();
-}
+  const confirmed = confirm(
+    "Are you sure you want to delete this product?\nThis action cannot be undone."
+  );
 
-function editProduct(product){
-  openModal('edit', product);
+  if (!confirmed) return;
+
+  showLoading();
+
+  try {
+    await fetch(`${API_BASE}/api/products/${id}`, {
+      method: 'DELETE'
+    });
+
+    toast('Product deleted successfully');
+    fetchProducts();
+
+  } catch (err) {
+    toast('Failed to delete product', 'error');
+  } finally {
+    hideLoading();
+  }
 }
 
 /* ===================== SAVE PRODUCT ===================== */
