@@ -469,6 +469,37 @@ function showPage(id, el){
   overlay.classList.remove("show");  
 }  
 
+function openModal(mode = 'add', product = {}) {
+  modal.style.display = "flex";
+  spinner.style.display = "none";
+  modalBtn.disabled = false;
+
+  editProductId = null;
+
+  document.getElementById("productName").value = product.name || '';
+  document.getElementById("productPrice").value = product.price || '';
+  document.getElementById("productQuantity").value = product.quantity || '';
+  document.getElementById("productCategory").value = product.category || 'Apparel';
+  document.getElementById("productDescription").value = product.description || '';
+  document.getElementById("imageCount").value = '';
+  document.getElementById("imageInputs").innerHTML = '';
+  imagePreview.innerHTML = '';
+
+  if (mode === 'edit') {
+    editProductId = product._id;
+    modalTitle.innerText = 'Edit Product';
+    modalBtn.innerText = 'Save Changes';
+  } else {
+    modalTitle.innerText = 'Add Product';
+    modalBtn.innerText = 'Create Product';
+  }
+}
+
+function closeModal() {
+  modal.style.display = "none";
+  editProductId = null;
+}
+
 /* ===================== TOAST ===================== */
 function toast(msg, type='success'){
   const t = document.createElement('div');
