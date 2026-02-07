@@ -344,14 +344,21 @@ tr:not(:last-child){
   .main{margin-left:0;}  
   .hamburger{display:block;}  
 }  
-</style>  </head>  <body>  <div class="admin-wrapper">    <aside class="sidebar" id="sidebar">  
+</style>  
+</head>  
+<body> 
+ <div class="admin-wrapper"> 
+   <aside class="sidebar" id="sidebar">  
     <h2>MAISON</h2>  
     <ul>  
       <li class="active" onclick="showPage('dashboard', this)">Dashboard</li>  
       <li onclick="showPage('products', this)">Products</li>  
       <li onclick="showPage('orders', this)">Orders</li>  
     </ul>  
-  </aside>    <div id="overlay"></div>    <main class="main">  <div class="topbar glass">  
+  </aside>  
+  <div id="overlay"></div>   
+ <main class="main"> 
+ <div class="topbar glass">  
   <span class="hamburger" onclick="toggleSidebar()">☰</span>  
   <strong>MAISON ADMIN PANEL</strong>  
 </div>  
@@ -359,10 +366,10 @@ tr:not(:last-child){
 <!-- DASHBOARD -->  
 <section id="dashboard" class="page active">  
   <div class="metrics">  
-    <div class="metric glass"><h4>Total Revenue</h4><p id="totalRevenue">$0</p></div>  
+    <div class="metric glass"><h4>Total Revenue</h4><p id="totalRevenue">₦0</p></div>  
     <div class="metric glass"><h4>Total Orders</h4><p id="totalOrders">0</p></div>  
     <div class="metric glass"><h4>Total Products</h4><p id="totalProducts">0</p></div>  
-    <div class="metric glass"><h4>Avg Order Value</h4><p id="avgOrder">$0</p></div>  
+    <div class="metric glass"><h4>Avg Order Value</h4><p id="avgOrder">₦0</p></div>  
   </div>  
 
   <div class="glass table-wrapper">  
@@ -430,7 +437,9 @@ tr:not(:last-child){
 <div class="footer glass">← Back to Store</div>
 
   </main>  
-</div>  <!-- MODAL -->  <div class="modal" id="modal">  
+</div>  
+<!-- MODAL -->  
+<div class="modal" id="modal">  
   <div class="modal-content glass">  
     <h3 id="modalTitle">Add Product</h3>  
     <input type="text" id="productName" placeholder="Product Name">  
@@ -454,9 +463,6 @@ tr:not(:last-child){
 <div id="loadingOverlay" class="loading-overlay">
   <div class="spinner"></div>
 </div>
-
- <!--<div id="spinner" style="display:none" class="spinner"></div>
-</div>  -->
 
 <script>
 const API_BASE = 'https://maison-90o3.onrender.com';
