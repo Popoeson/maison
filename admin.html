@@ -272,6 +272,23 @@ tr:not(:last-child){
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ===================== GLOBAL LOADING OVERLAY ===================== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 6000;
+}
+
+/* Center spinner properly */
+.loading-overlay .spinner {
+  margin: 0;
+}
+
 /* ===================== SPINNER ===================== */
 .spinner {
   width: 38px;
@@ -433,46 +450,52 @@ tr:not(:last-child){
     <button class="btn" id="modalBtn">Create Product</button>  
     <button class="btn" style="background:#ccc;color:#333;" onclick="closeModal()">Cancel</button>  
   </div>  
-  <div id="spinner" style="display:none" class="spinner"></div>
-</div>  
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+ <!--<div id="spinner" style="display:none" class="spinner"></div>
+</div>  -->
 
 <script>
 const API_BASE = 'https://maison-90o3.onrender.com';
+
 const sidebar = document.getElementById("sidebar");
 const modal = document.getElementById("modal");
 const modalBtn = document.getElementById("modalBtn");
-const spinner = document.getElementById("spinner");
-const imagePreview = document.getElementById("imagePreview");
 const overlay = document.getElementById("overlay");
+const imagePreview = document.getElementById("imagePreview");
 const modalTitle = document.getElementById("modalTitle");
+const loadingOverlay = document.getElementById("loadingOverlay");
 
 let editProductId = null;
 
+/* ===================== SIDEBAR ===================== */
 function toggleSidebar(){  
   sidebar.classList.toggle("show");  
   overlay.classList.toggle("show");  
-}  
-  
+}
+
 overlay.addEventListener("click", ()=>{  
   sidebar.classList.remove("show");  
   overlay.classList.remove("show");  
-});  
-  
+});
+
 function showPage(id, el){  
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));  
   document.getElementById(id).classList.add("active");  
-  
+
   document.querySelectorAll(".sidebar li").forEach(li=>li.classList.remove("active"));  
   el.classList.add("active");  
-  
+
   sidebar.classList.remove("show");  
   overlay.classList.remove("show");  
-}  
+}
 
+/* ===================== MODAL ===================== */
 function openModal(mode = 'add', product = {}) {
   modal.style.display = "flex";
-  spinner.style.display = "none";
-  modalBtn.disabled = false;
 
   editProductId = null;
 
@@ -500,6 +523,19 @@ function closeModal() {
   editProductId = null;
 }
 
+/* ===================== LOADING OVERLAY ===================== */
+function showLoading() {
+  loadingOverlay.style.display = "flex";
+  modal.querySelectorAll("input, textarea, select, button")
+    .forEach(el => el.disabled = true);
+}
+
+function hideLoading() {
+  loadingOverlay.style.display = "none";
+  modal.querySelectorAll("input, textarea, select, button")
+    .forEach(el => el.disabled = false);
+}
+
 /* ===================== TOAST ===================== */
 function toast(msg, type='success'){
   const t = document.createElement('div');
@@ -520,7 +556,7 @@ document.getElementById("imageCount").addEventListener("input", e => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
-    input.onchange = () => previewImages();
+    input.onchange = previewImages;
     inputs.appendChild(input);
   }
 });
@@ -537,7 +573,7 @@ function previewImages(){
       div.className='preview';
       div.innerHTML = `
         <img src="${e.target.result}">
-        ${i===0 ? '<span>Main</span>' : ''}
+        ${i === 0 ? '<span>Main</span>' : ''}
       `;
       imagePreview.appendChild(div);
     };
@@ -550,15 +586,17 @@ async function fetchProducts(){
   const res = await fetch(`${API_BASE}/api/products`);
   const data = await res.json();
   const tbody = document.getElementById("productsTable");
-  tbody.innerHTML='';
+  tbody.innerHTML = '';
 
   data.forEach(p=>{
     tbody.innerHTML += `
       <tr>
-        <td><img src="${p.mainImage || p.imageUrl}" style="width:50px;border-radius:8px"></td>
+        <td>
+          <img src="${p.mainImage || p.imageUrl}" style="width:50px;border-radius:8px">
+        </td>
         <td>${p.name}</td>
         <td>${p.category}</td>
-        <td>$${p.price}</td>
+        <td>₦${Number(p.price).toLocaleString()}</td>
         <td>${p.quantity}</td>
         <td>
           <button class="btn" onclick='editProduct(${JSON.stringify(p)})'>✏️</button>
@@ -570,48 +608,52 @@ async function fetchProducts(){
 }
 
 async function deleteProduct(id){
-  await fetch(`${API_BASE}/api/products/${id}`,{method:'DELETE'});
+  await fetch(`${API_BASE}/api/products/${id}`, { method:'DELETE' });
   toast('Product deleted');
   fetchProducts();
 }
 
-function editProduct(p){
-  editProductId = p._id;
-  openModal('edit', p);
+function editProduct(product){
+  openModal('edit', product);
 }
 
-/* ===================== SAVE ===================== */
-modalBtn.onclick = async ()=>{
-  spinner.style.display='block';
-  modalBtn.disabled = true;
+/* ===================== SAVE PRODUCT ===================== */
+modalBtn.onclick = async () => {
+  showLoading();
 
-  try{
+  try {
     const fd = new FormData();
-    ['Name','Price','Quantity','Category','Description'].forEach(f=>{
-      fd.append(f.toLowerCase(), document.getElementById('product'+f).value);
+    ['Name','Price','Quantity','Category','Description'].forEach(f => {
+      fd.append(
+        f.toLowerCase(),
+        document.getElementById('product' + f).value
+      );
     });
 
     document.querySelectorAll('#imageInputs input')
-      .forEach(i=>i.files[0] && fd.append('images', i.files[0]));
+      .forEach(i => i.files[0] && fd.append('images', i.files[0]));
 
     const url = editProductId
       ? `${API_BASE}/api/products/${editProductId}`
       : `${API_BASE}/api/products`;
 
-    await fetch(url,{ method: editProductId?'PUT':'POST', body: fd });
+    await fetch(url, {
+      method: editProductId ? 'PUT' : 'POST',
+      body: fd
+    });
 
     toast(editProductId ? 'Product updated' : 'Product created');
-    modal.style.display='none';
+    closeModal();
     fetchProducts();
 
-  }catch(err){
-    toast('Something went wrong','error');
-  }finally{
-    spinner.style.display='none';
-    modalBtn.disabled = false;
+  } catch (err) {
+    toast('Something went wrong', 'error');
+  } finally {
+    hideLoading();
   }
 };
 
+/* ===================== INIT ===================== */
 fetchProducts();
 </script>
   </body>  
