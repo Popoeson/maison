@@ -254,69 +254,91 @@ background:linear-gradient(
   border-top:1px solid #eee;
 }
   
-  /* ---------- FOOTER ---------- */
+  /* ==========================
+   FOOTER (GLOBAL)
+========================== */
+
 .footer {
-  background-color: #222; /* dark navy */
-  color: #fff;
-  padding: 50px 6% 25px;
-  font-family: "Poppins", sans-serif;
+  background-color: #1f1f1f;
+  color: #ddd;
+  padding: 45px 6% 25px;
+  font-family: "Inter", sans-serif;
 }
 
+/* Footer layout */
 .footer-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 30px;
-  margin-bottom: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 32px;
+  align-items: flex-start;
 }
 
+/* Brand section */
 .footer-about h3 {
-  color: #ff6600;
-  font-size: 1.4rem;
-  margin-bottom: 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #fff;
 }
 
 .footer-about p {
-  color: #ddd;
+  font-size: 0.85rem;
   line-height: 1.6;
+  color: #bbb;
+  max-width: 320px;
 }
 
+/* Section headings */
 .footer-hours h4,
 .footer-contact h4 {
-  color: #fff;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   margin-bottom: 10px;
+  color: #fff;
 }
 
+/* Section text */
 .footer-hours p,
 .footer-contact p {
-  color: #ccc;
-  margin: 6px 0;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #bbb;
+  margin: 4px 0;
 }
 
-.footer-hours span,
-.footer-contact span {
-  color: #ff6600;
-  margin-right: 6px;
-}
-
+/* Footer bottom */
 .footer-bottom {
+  margin-top: 30px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.1);
   text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 12px;
-  font-size: 0.9rem;
-  color: #aaa;
+  font-size: 0.75rem;
+  color: #999;
 }
+
+/* ==========================
+   MOBILE REFINEMENTS
+========================== */
 
 @media (max-width: 600px) {
   .footer {
+    padding: 35px 5% 20px;
     text-align: center;
   }
+
+  .footer-container {
+    gap: 26px;
+  }
+
+  .footer-about p {
+    margin: 0 auto;
+  }
+
   .footer-hours p,
   .footer-contact p {
-    margin-left: 0 !important;
+    margin-left: 0;
   }
-  }
+}
 </style>
 </head>
 
@@ -363,7 +385,7 @@ background:linear-gradient(
   <div class="footer-container">
     <div class="footer-about">
       <h3>Maison Boutique</h3>
-      <h1>Curated Essentials for Modern Living</h1>
+      <h4>Curated Essentials for Modern Living</h4>
     <p>Timeless design, sustainable materials, and craftsmanship that speaks for itself.</p>
     </div>
 
