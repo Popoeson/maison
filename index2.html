@@ -273,6 +273,90 @@ header{
   cursor:pointer;
 }
 
+/* Cart items container */
+.cart-items{
+  max-height:60vh;
+  overflow:auto;
+  padding-right:4px;
+}
+
+/* Cart item card */
+.cart-item{
+  background:#fafafa;
+  border-radius:14px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:70px 1fr;
+  gap:12px;
+  margin-bottom:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Product image */
+.cart-item img{
+  width:70px;
+  height:70px;
+  border-radius:10px;
+  object-fit:cover;
+}
+
+/* Item details */
+.cart-item > div{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* Product name */
+.cart-item strong{
+  font-size:0.95rem;
+  font-weight:600;
+  margin-bottom:2px;
+}
+
+/* Price text */
+.cart-item .item-price{
+  font-size:0.85rem;
+  color:#777;
+  margin-bottom:6px;
+}
+
+/* Quantity + total row */
+.cart-item-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* Quantity controls */
+.qty-controls{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.qty-controls button{
+  width:26px;
+  height:26px;
+  border:none;
+  border-radius:50%;
+  cursor:pointer;
+  background:#eaeaea;
+  font-weight:600;
+  transition:0.2s;
+}
+
+.qty-controls button:hover{
+  background:#ddd;
+}
+
+/* Item total */
+.item-total{
+  font-size:0.9rem;
+  font-weight:600;
+  color:var(--accent-olive);
+}
+
 /* ==========================
    FOOTER (GLOBAL – DESKTOP + MOBILE)
 ========================== */
