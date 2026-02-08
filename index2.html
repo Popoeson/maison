@@ -48,7 +48,7 @@ h1,h2,h3{
 }
 
 /* ==========================
-   HEADER
+   HEADER (MINIMAL)
 ========================== */
 header{
   position:fixed;
@@ -71,12 +71,6 @@ header{
   letter-spacing:2px;
 }
 
-.nav-links{
-  display:flex;
-  gap:18px;
-  align-items:center;
-}
-
 .cart-btn{
   position:relative;
   cursor:pointer;
@@ -91,18 +85,6 @@ header{
   font-size:10px;
   padding:2px 6px;
   border-radius:50%;
-}
-
-.mobile-only{
-  display:none;
-}
-
-.mobile-nav{
-  display:none;
-  justify-content:center;
-  gap:18px;
-  padding:12px 0;
-  border-top:1px solid #eee;
 }
 
 /* ==========================
@@ -445,26 +427,11 @@ header{
   <div class="header-top">
     <div class="logo">MAISON</div>
 
-      <div class="nav-links">
-      <a href="#">Shop</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-
-      <div class="cart-btn" onclick="toggleCart()">
-        <i class="fa-solid fa-bag-shopping"></i>
-        <span id="cartCount">0</span>
-      </div>
-    </div>
-
-    <div class="cart-btn mobile-only" onclick="toggleCart()">
+    <div class="cart-btn" onclick="toggleCart()">
       <i class="fa-solid fa-bag-shopping"></i>
-      <span id="cartCountMobile">0</span>
+      <span id="cartCount">0</span>
     </div>
   </div>
-
- <div class="mobile-nav">
-  <a href="#">Shop</a><a href="#">About</a><a href="#">Contact</a>
-  </div> 
 </header>
 
 <!-- PAGE CONTENT -->
