@@ -5,246 +5,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAISON • Boutique</title>
 
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500,600&display=swap" rel="stylesheet">
-
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 :root{
   --bg-main:#F5F0E1;
   --text-dark:#2A2A2A;
-  --text-light:#fff;
   --accent-olive:#6B8E23;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-body{
-  font-family:"Inter",sans-serif;
-  background:var(--bg-main);
-  color:var(--text-dark);
-}
-
-body.blur{
-  filter:blur(4px);
-}
-
+body{font-family:"Inter",sans-serif;background:var(--bg-main);color:var(--text-dark);}
 a{text-decoration:none;color:inherit;}
 h1,h2,h3{font-family:"Playfair Display",serif;}
 
-/* ================= HEADER ================= */
+.page-content.blur{
+  filter:blur(5px);
+}
+
+/* HEADER */
 header{
-  position:fixed;
-  top:0;
-  width:100%;
+  position:fixed;top:0;width:100%;
   background:rgba(255,255,255,0.96);
   z-index:1000;
   box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
-
 .header-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  display:flex;justify-content:space-between;align-items:center;
   padding:18px 32px;
 }
-
-.logo{
-  font-size:24px;
-  letter-spacing:2px;
-}
-
-.nav-links{
-  display:flex;
-  align-items:center;
-  gap:24px;
-}
-
-.cart-btn{
-  position:relative;
-  cursor:pointer;
-}
-
+.logo{font-size:24px;letter-spacing:2px;}
+.nav-links{display:flex;gap:24px;align-items:center;}
+.cart-btn{position:relative;cursor:pointer;}
 .cart-btn span{
-  position:absolute;
-  top:-6px;
-  right:-8px;
-  background:var(--accent-olive);
-  color:#fff;
-  font-size:11px;
-  padding:2px 6px;
-  border-radius:50%;
+  position:absolute;top:-6px;right:-8px;
+  background:var(--accent-olive);color:#fff;
+  font-size:11px;padding:2px 6px;border-radius:50%;
 }
+.mobile-only{display:none;}
 
-.mobile-only{
-  display:none;
-}
-
-/* Mobile nav row */
 .mobile-nav{
-  display:none;
-  justify-content:center;
-  gap:24px;
-  padding:12px 0;
-  border-top:1px solid #eee;
+  display:none;justify-content:center;gap:24px;
+  padding:12px 0;border-top:1px solid #eee;
 }
 
-/* ================= HERO ================= */
-.hero{
-  margin-top:110px;
-  height:90vh;
-  position:relative;
-  overflow:hidden;
-}
-.hero img{
-  position:absolute;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  opacity:0;
-  transition:opacity 1s ease;
-}
+/* HERO */
+.hero{margin-top:110px;height:90vh;position:relative;overflow:hidden;}
+.hero img{position:absolute;width:100%;height:100%;object-fit:cover;opacity:0;transition:1s;}
 .hero img.active{opacity:1;}
 
-/* ================= PRODUCTS ================= */
-.section{
-  padding:80px 24px;
-  max-width:1300px;
-  margin:auto;
-}
-.section h2{
-  text-align:center;
-  font-size:2rem;
-  margin-bottom:40px;
-}
-
-.product-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:28px;
-}
-
-.product-card{
-  background:#fff;
-  border-radius:16px;
-  overflow:hidden;
-  box-shadow:0 4px 15px rgba(0,0,0,0.05);
-}
-.product-card img{
-  width:100%;
-  height:220px;
-  object-fit:cover;
-}
-.product-info{
-  padding:16px;
-}
-.product-info h3{font-size:1.05rem;}
-.product-info p{font-size:0.9rem;color:#666;}
-.product-info span{
-  display:block;
-  margin:6px 0;
-  font-weight:600;
-  color:var(--accent-olive);
-}
+/* PRODUCTS */
+.section{padding:80px 24px;max-width:1300px;margin:auto;}
+.product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;}
+.product-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);}
+.product-card img{width:100%;height:220px;object-fit:cover;}
+.product-info{padding:16px;}
+.product-info span{color:var(--accent-olive);font-weight:600;}
 .product-info button{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:999px;
-  background:var(--accent-olive);
-  color:#fff;
-  cursor:pointer;
+  width:100%;margin-top:10px;padding:10px;
+  border:none;border-radius:999px;
+  background:var(--accent-olive);color:#fff;cursor:pointer;
 }
 
-/* ================= CART ================= */
+/* CART */
 .cart-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.4);
-  display:none;
-  z-index:1100;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.35);
+  display:none;z-index:1100;
 }
-
-.cart-overlay.show{
-  display:block;
-}
+.cart-overlay.show{display:block;}
 
 .cart-drawer{
-  position:fixed;
-  top:0;
-  right:0;
-  width:360px;
-  height:100%;
-  background:#fff;
-  padding:24px;
+  position:fixed;top:0;right:0;
+  width:360px;height:100%;
+  background:#fff;padding:24px;
   box-shadow:-6px 0 20px rgba(0,0,0,0.1);
   transform:translateX(100%);
-  transition:0.3s;
-  z-index:1200;
+  transition:0.3s;z-index:1200;
 }
+.cart-drawer.open{transform:translateX(0);}
 
-.cart-drawer.open{
-  transform:translateX(0);
-}
-
-.cart-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.cart-items{
-  max-height:60vh;
-  overflow:auto;
-}
+.cart-items{max-height:60vh;overflow:auto;}
 
 .cart-item{
-  display:flex;
-  justify-content:space-between;
+  display:flex;gap:12px;align-items:center;
   margin-bottom:16px;
-  font-size:0.9rem;
+}
+.cart-item img{
+  width:60px;height:60px;border-radius:8px;object-fit:cover;
+}
+.qty-controls{
+  display:flex;align-items:center;gap:8px;
+}
+.qty-controls button{
+  width:26px;height:26px;border:none;
+  border-radius:50%;cursor:pointer;
+  background:#eee;
 }
 
-.cart-total{
-  margin-top:20px;
-  font-weight:600;
-}
-
+.cart-total{margin-top:20px;font-weight:600;}
 .checkout-btn{
-  margin-top:20px;
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:999px;
-  background:var(--accent-olive);
-  color:#fff;
-  font-size:1rem;
-  cursor:pointer;
+  width:100%;margin-top:20px;padding:14px;
+  border:none;border-radius:999px;
+  background:var(--accent-olive);color:#fff;font-size:1rem;
 }
 
-/* ================= FOOTER ================= */
-.footer{
-  background:#222;
-  color:#fff;
-  padding:60px 24px;
-  text-align:center;
-}
-
-/* ================= RESPONSIVE ================= */
+/* MOBILE */
 @media(max-width:768px){
   .nav-links{display:none;}
   .mobile-only{display:block;}
   .mobile-nav{display:flex;}
   .product-grid{grid-template-columns:repeat(2,1fr);}
-
   .cart-drawer{
-    width:90%;
-    right:5%;
-    top:10%;
-    height:80%;
-    border-radius:16px;
+    width:90%;right:5%;top:10%;height:80%;
+    border-radius:18px;
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:blur(16px);
   }
 }
 </style>
@@ -255,49 +132,35 @@ header{
 <header>
   <div class="header-top">
     <div class="logo">MAISON</div>
-
     <div class="nav-links">
-      <a href="#">Shop</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
+      <a href="#">Shop</a><a href="#">About</a><a href="#">Contact</a>
       <div class="cart-btn" onclick="toggleCart()">
         <i class="fa-solid fa-bag-shopping"></i>
         <span id="cartCount">0</span>
       </div>
     </div>
-
     <div class="cart-btn mobile-only" onclick="toggleCart()">
       <i class="fa-solid fa-bag-shopping"></i>
       <span id="cartCountMobile">0</span>
     </div>
   </div>
-
   <div class="mobile-nav">
-    <a href="#">Shop</a>
-    <a href="#">About</a>
-    <a href="#">Contact</a>
+    <a href="#">Shop</a><a href="#">About</a><a href="#">Contact</a>
   </div>
 </header>
 
-<section class="hero" id="heroSection"></section>
+<div class="page-content" id="pageContent">
+  <section class="hero" id="heroSection"></section>
+  <section class="section">
+    <h2>Featured Products</h2>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+  <footer class="footer"><p>©2024 Maison Boutique</p></footer>
+</div>
 
-<section class="section">
-  <h2>Featured Products</h2>
-  <div class="product-grid" id="productGrid"></div>
-</section>
-
-<footer class="footer">
-  <h3>MAISON</h3>
-  <p>©2024 Maison Boutique</p>
-</footer>
-
-<!-- CART -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
-  <div class="cart-header">
-    <h3>Your Cart</h3>
-    <i class="fa-solid fa-xmark" onclick="toggleCart()" style="cursor:pointer;"></i>
-  </div>
+  <h3>Your Cart</h3>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-total" id="cartTotal"></div>
   <button class="checkout-btn">Checkout</button>
@@ -305,88 +168,85 @@ header{
 
 <script>
 const API_BASE='https://maison-90o3.onrender.com';
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let cart=JSON.parse(localStorage.getItem('cart'))||[];
 
-function isMobile(){
-  return window.innerWidth <= 768;
-}
+const isMobile=()=>window.innerWidth<=768;
 
 function updateCartCount(){
-  const count = cart.reduce((a,c)=>a+c.quantity,0);
-  cartCount.innerText = count;
-  cartCountMobile.innerText = count;
+  const count=cart.reduce((a,c)=>a+c.quantity,0);
+  cartCount.textContent=count;
+  cartCountMobile.textContent=count;
+}
+
+function changeQty(id,delta){
+  const item=cart.find(i=>i._id===id);
+  if(!item) return;
+  item.quantity+=delta;
+  if(item.quantity<=0) cart=cart.filter(i=>i._id!==id);
+  localStorage.setItem('cart',JSON.stringify(cart));
+  updateCartCount();renderCart();
 }
 
 function renderCart(){
   cartItems.innerHTML='';
   let total=0;
-  cart.forEach(item=>{
-    total += item.price * item.quantity;
-    cartItems.innerHTML += `
+  cart.forEach(i=>{
+    total+=i.price*i.quantity;
+    cartItems.innerHTML+=`
       <div class="cart-item">
-        <div>${item.name} × ${item.quantity}</div>
-        <div>₦${item.price * item.quantity}</div>
-      </div>
-    `;
+        <img src="${i.mainImage}">
+        <div>
+          <strong>${i.name}</strong>
+          <div class="qty-controls">
+            <button onclick="changeQty('${i._id}',-1)">−</button>
+            ${i.quantity}
+            <button onclick="changeQty('${i._id}',1)">+</button>
+          </div>
+          ₦${i.price*i.quantity}
+        </div>
+      </div>`;
   });
-  cartTotal.innerText = `Total: ₦${total}`;
+  cartTotal.textContent=`Total: ₦${total}`;
 }
 
-function addToCart(product){
-  const existing = cart.find(i=>i._id===product._id);
-  if(existing) existing.quantity++;
-  else cart.push({...product,quantity:1});
+function addToCart(p){
+  const e=cart.find(i=>i._id===p._id);
+  e?e.quantity++:cart.push({...p,quantity:1});
   localStorage.setItem('cart',JSON.stringify(cart));
-  updateCartCount();
-  renderCart();
+  updateCartCount();renderCart();
 }
 
 function toggleCart(){
   cartDrawer.classList.toggle('open');
-
   if(isMobile()){
     cartOverlay.classList.toggle('show');
-    document.body.classList.toggle('blur');
+    pageContent.classList.toggle('blur');
   }
   renderCart();
 }
 
 async function fetchHeroes(){
-  const res = await fetch(`${API_BASE}/api/hero-images`);
-  const data = await res.json();
-  const active = data.filter(h=>h.isActive);
-
-  active.forEach((h,i)=>{
-    const img=document.createElement('img');
-    img.src=h.imageUrl;
+  const d=await (await fetch(`${API_BASE}/api/hero-images`)).json();
+  d.filter(h=>h.isActive).forEach((h,i)=>{
+    const img=new Image();img.src=h.imageUrl;
     if(i===0) img.classList.add('active');
     heroSection.appendChild(img);
   });
-
-  let index=0;
-  setInterval(()=>{
-    const imgs=document.querySelectorAll('.hero img');
-    imgs.forEach(i=>i.classList.remove('active'));
-    imgs[index=(index+1)%imgs.length].classList.add('active');
-  },5000);
 }
 
 async function fetchProducts(){
-  const res = await fetch(`${API_BASE}/api/products`);
-  const data = await res.json();
+  const d=await (await fetch(`${API_BASE}/api/products`)).json();
   productGrid.innerHTML='';
-  data.forEach(p=>{
+  d.forEach(p=>{
     productGrid.innerHTML+=`
       <div class="product-card">
         <img src="${p.mainImage}">
         <div class="product-info">
           <h3>${p.name}</h3>
-          <p>${p.category}</p>
           <span>₦${p.price}</span>
           <button onclick='addToCart(${JSON.stringify(p)})'>Add to Cart</button>
         </div>
-      </div>
-    `;
+      </div>`;
   });
 }
 
