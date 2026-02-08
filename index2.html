@@ -254,6 +254,69 @@ background:linear-gradient(
   border-top:1px solid #eee;
 }
   
+  /* ---------- FOOTER ---------- */
+.footer {
+  background-color: #222; /* dark navy */
+  color: #fff;
+  padding: 50px 6% 25px;
+  font-family: "Poppins", sans-serif;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin-bottom: 25px;
+}
+
+.footer-about h3 {
+  color: #ff6600;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.footer-about p {
+  color: #ddd;
+  line-height: 1.6;
+}
+
+.footer-hours h4,
+.footer-contact h4 {
+  color: #fff;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.footer-hours p,
+.footer-contact p {
+  color: #ccc;
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.footer-hours span,
+.footer-contact span {
+  color: #ff6600;
+  margin-right: 6px;
+}
+
+.footer-bottom {
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+@media (max-width: 600px) {
+  .footer {
+    text-align: center;
+  }
+  .footer-hours p,
+  .footer-contact p {
+    margin-left: 0 !important;
+  }
+  }
 </style>
 </head>
 
