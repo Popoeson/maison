@@ -345,19 +345,27 @@ function renderCart(){
   let total=0;
   cart.forEach(i=>{
     total+=i.price*i.quantity;
-    cartItems.innerHTML+=`
-      <div class="cart-item">
-        <img src="${i.mainImage}">
-        <div>
-          <strong>${i.name}</strong>
-          <div class="qty-controls">
-            <button onclick="changeQty('${i._id}',-1)">−</button>
-            ${i.quantity}
-            <button onclick="changeQty('${i._id}',1)">+</button>
-          </div>
-          ₦${i.price*i.quantity}
+    cartItems.innerHTML += `
+  <div class="cart-item">
+    <img src="${i.mainImage}">
+    <div>
+      <strong>${i.name}</strong>
+      <div class="item-price">₦${i.price} each</div>
+
+      <div class="cart-item-footer">
+        <div class="qty-controls">
+          <button onclick="changeQty('${i._id}',-1)">−</button>
+          <span>${i.quantity}</span>
+          <button onclick="changeQty('${i._id}',1)">+</button>
         </div>
-      </div>`;
+
+        <div class="item-total">
+          ₦${i.price * i.quantity}
+        </div>
+      </div>
+    </div>
+  </div>
+`;
   });
   cartTotal.textContent=`Total: ₦${total}`;
 }
