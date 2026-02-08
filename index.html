@@ -25,7 +25,10 @@ body{
   background:var(--bg-main);
   color:var(--text-dark);
 }
-body.blur{filter:blur(4px);}
+
+body.blur{
+  filter:blur(4px);
+}
 
 a{text-decoration:none;color:inherit;}
 h1,h2,h3{font-family:"Playfair Display",serif;}
@@ -72,6 +75,10 @@ header{
   font-size:11px;
   padding:2px 6px;
   border-radius:50%;
+}
+
+.mobile-only{
+  display:none;
 }
 
 /* Mobile nav row */
@@ -150,13 +157,17 @@ header{
   cursor:pointer;
 }
 
-/* ================= CART DRAWER ================= */
+/* ================= CART ================= */
 .cart-overlay{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.4);
   display:none;
   z-index:1100;
+}
+
+.cart-overlay.show{
+  display:block;
 }
 
 .cart-drawer{
@@ -173,8 +184,9 @@ header{
   z-index:1200;
 }
 
-.cart-drawer.open{transform:translateX(0);}
-.cart-overlay.show{display:block;}
+.cart-drawer.open{
+  transform:translateX(0);
+}
 
 .cart-header{
   display:flex;
@@ -223,8 +235,10 @@ header{
 /* ================= RESPONSIVE ================= */
 @media(max-width:768px){
   .nav-links{display:none;}
+  .mobile-only{display:block;}
   .mobile-nav{display:flex;}
   .product-grid{grid-template-columns:repeat(2,1fr);}
+
   .cart-drawer{
     width:90%;
     right:5%;
@@ -293,6 +307,10 @@ header{
 const API_BASE='https://maison-90o3.onrender.com';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
+function isMobile(){
+  return window.innerWidth <= 768;
+}
+
 function updateCartCount(){
   const count = cart.reduce((a,c)=>a+c.quantity,0);
   cartCount.innerText = count;
@@ -325,19 +343,32 @@ function addToCart(product){
 
 function toggleCart(){
   cartDrawer.classList.toggle('open');
-  cartOverlay.classList.toggle('show');
+
+  if(isMobile()){
+    cartOverlay.classList.toggle('show');
+    document.body.classList.toggle('blur');
+  }
   renderCart();
 }
 
 async function fetchHeroes(){
   const res = await fetch(`${API_BASE}/api/hero-images`);
   const data = await res.json();
-  data.filter(h=>h.isActive).forEach((h,i)=>{
+  const active = data.filter(h=>h.isActive);
+
+  active.forEach((h,i)=>{
     const img=document.createElement('img');
     img.src=h.imageUrl;
     if(i===0) img.classList.add('active');
     heroSection.appendChild(img);
   });
+
+  let index=0;
+  setInterval(()=>{
+    const imgs=document.querySelectorAll('.hero img');
+    imgs.forEach(i=>i.classList.remove('active'));
+    imgs[index=(index+1)%imgs.length].classList.add('active');
+  },5000);
 }
 
 async function fetchProducts(){
