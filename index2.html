@@ -493,157 +493,207 @@ header{
 </div>
 
 <script>
-// Base API URL
-const API_BASE='https://maison-90o3.onrender.com';
+// ===============================
+// CONFIG
+// ===============================
+const API_BASE = 'https://maison-90o3.onrender.com';
 
-// Load cart from localStorage or initialize empty
-let cart=JSON.parse(localStorage.getItem('cart'))||[];
+// ===============================
+// STATE
+// ===============================
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-// Check if mobile viewport
-const isMobile=()=>window.innerWidth<=768;
-
-// Update cart count badges
+// ===============================
+// HELPERS
+// ===============================
 function updateCartCount(){
-  const count=cart.reduce((a,c)=>a+c.quantity,0);
-  document.getElementById('cartCount').textContent=count;
-  document.getElementById('cartCountMobile').textContent=count;
+  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const cartCount = document.getElementById('cartCount');
+  if (cartCount) cartCount.textContent = count;
 }
 
-// Change item quantity in cart
-function changeQty(id,delta){
-  const item=cart.find(i=>i._id===id);
-  if(!item) return;
-  item.quantity+=delta;
-  if(item.quantity<=0) cart=cart.filter(i=>i._id!==id);
-  localStorage.setItem('cart',JSON.stringify(cart));
-  updateCartCount();
-  renderCart();
+function saveCart(){
+  localStorage.setItem('cart', JSON.stringify(cart));
 }
 
-// Render cart items
-function renderCart(){
-  const cartItems=document.getElementById('cartItems');
-  const cartTotal=document.getElementById('cartTotal');
-  cartItems.innerHTML='';
-  let total=0;
-  cart.forEach(i=>{
-    total+=i.price*i.quantity;
-    cartItems.innerHTML += `
-  <div class="cart-item">
-    <img src="${i.mainImage}">
-    <div>
-      <strong>${i.name}</strong>
-      <div class="item-price">₦${i.price} each</div>
+// ===============================
+// CART LOGIC
+// ===============================
+function addToCart(product){
+  const existing = cart.find(i => i._id === product._id);
 
-      <div class="cart-item-footer">
-        <div class="qty-controls">
-          <button onclick="changeQty('${i._id}',-1)">−</button>
-          <span>${i.quantity}</span>
-          <button onclick="changeQty('${i._id}',1)">+</button>
-        </div>
-
-        <div class="item-total">
-          ₦${i.price * i.quantity}
-        </div>
-      </div>
-    </div>
-  </div>
-`;
-  });
-  cartTotal.textContent=`Total: ₦${total}`;
-}
-
-// Add product to cart
-function addToCart(p){
-  const e=cart.find(i=>i._id===p._id);
-  e?e.quantity++:cart.push({...p,quantity:1});
-  localStorage.setItem('cart',JSON.stringify(cart));
-  updateCartCount();
-  renderCart();
-}
-
-// Toggle cart open/close
-function toggleCart(){
-  const cartDrawer=document.getElementById('cartDrawer');
-  const cartOverlay=document.getElementById('cartOverlay');
-  const pageContent=document.getElementById('pageContent');
-
-  cartDrawer.classList.toggle('open');
-
-  if(isMobile()){
-    cartOverlay.classList.toggle('show');
-    pageContent.classList.toggle('blur');
+  if (existing) {
+    existing.quantity++;
   } else {
-    // Desktop overlay handling
-    if(cartDrawer.classList.contains('open')) cartOverlay.style.display='block';
-    else cartOverlay.style.display='none';
+    cart.push({ ...product, quantity: 1 });
   }
 
+  saveCart();
+  updateCartCount();
   renderCart();
 }
 
-// Close cart (for x button)
-function closeCart(){
-  const cartDrawer=document.getElementById('cartDrawer');
-  const cartOverlay=document.getElementById('cartOverlay');
-  const pageContent=document.getElementById('pageContent');
-  cartDrawer.classList.remove('open');
-  cartOverlay.style.display='none';
-  if(isMobile()) pageContent.classList.remove('blur');
+function changeQty(id, delta){
+  const item = cart.find(i => i._id === id);
+  if (!item) return;
+
+  item.quantity += delta;
+
+  if (item.quantity <= 0) {
+    cart = cart.filter(i => i._id !== id);
+  }
+
+  saveCart();
+  updateCartCount();
+  renderCart();
 }
 
-// Close cart on overlay click
-document.getElementById('cartOverlay').addEventListener('click', closeCart);
+function renderCart(){
+  const cartItems = document.getElementById('cartItems');
+  const cartTotal = document.getElementById('cartTotal');
 
-// Fetch hero images for carousel
-async function fetchHeroes(){
-  const res = await fetch(`${API_BASE}/api/hero-images`);
-  const data = await res.json();
-  const heroSection = document.getElementById('heroSection');
+  if (!cartItems || !cartTotal) return;
 
-  let index = 0;
-  const activeImages = data.filter(h => h.isActive);
-  if(activeImages.length === 0) return;
+  cartItems.innerHTML = '';
+  let total = 0;
 
-  activeImages.forEach((h,i)=>{
-    const img = document.createElement('img');
-    img.src = h.imageUrl;
-    if(i===0) img.classList.add('active');
-    heroSection.appendChild(img);
-  });
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
 
-  // Carousel rotation
-  setInterval(()=>{
-    const images = heroSection.querySelectorAll('img');
-    images.forEach(img => img.classList.remove('active'));
-    images[index].classList.add('active');
-    index = (index+1) % images.length;
-  }, 5000);
-}
+    cartItems.innerHTML += `
+      <div class="cart-item">
+        <img src="${item.mainImage}" alt="${item.name}">
+        <div>
+          <strong>${item.name}</strong>
+          <div class="item-price">₦${item.price} each</div>
 
-// Fetch products and display
-async function fetchProducts(){
-  const data=await (await fetch(`${API_BASE}/api/products`)).json();
-  const productGrid=document.getElementById('productGrid');
-  productGrid.innerHTML='';
-  data.forEach(p=>{
-    productGrid.innerHTML+=`
-      <div class="product-card">
-        <img src="${p.mainImage}">
-        <div class="product-info">
-          <h3>${p.name}</h3>
-          <span>₦${p.price}</span>
-          <button onclick='addToCart(${JSON.stringify(p)})'>Add to Cart</button>
+          <div class="cart-item-footer">
+            <div class="qty-controls">
+              <button onclick="changeQty('${item._id}', -1)">−</button>
+              <span>${item.quantity}</span>
+              <button onclick="changeQty('${item._id}', 1)">+</button>
+            </div>
+            <div class="item-total">₦${itemTotal}</div>
+          </div>
         </div>
-      </div>`;
+      </div>
+    `;
   });
+
+  cartTotal.textContent = `Total: ₦${total}`;
 }
 
-// Initialize
+// ===============================
+// CART UI
+// ===============================
+function toggleCart(){
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  const page = document.getElementById('pageContent');
+
+  if (!drawer || !overlay || !page) return;
+
+  drawer.classList.toggle('open');
+  overlay.classList.toggle('show');
+  page.classList.toggle('blur');
+
+  renderCart();
+}
+
+function closeCart(){
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  const page = document.getElementById('pageContent');
+
+  if (!drawer || !overlay || !page) return;
+
+  drawer.classList.remove('open');
+  overlay.classList.remove('show');
+  page.classList.remove('blur');
+}
+
+// Close cart when clicking overlay
+const overlay = document.getElementById('cartOverlay');
+if (overlay) {
+  overlay.addEventListener('click', closeCart);
+}
+
+// ===============================
+// HERO CAROUSEL
+// ===============================
+async function fetchHeroes(){
+  try {
+    const res = await fetch(`${API_BASE}/api/hero-images`);
+    const data = await res.json();
+
+    const heroSection = document.getElementById('heroSection');
+    if (!heroSection) return;
+
+    const activeImages = data.filter(img => img.isActive);
+    if (!activeImages.length) return;
+
+    let index = 0;
+
+    activeImages.forEach((img, i) => {
+      const image = document.createElement('img');
+      image.src = img.imageUrl;
+      if (i === 0) image.classList.add('active');
+      heroSection.appendChild(image);
+    });
+
+    setInterval(() => {
+      const images = heroSection.querySelectorAll('img');
+      images.forEach(img => img.classList.remove('active'));
+      images[index].classList.add('active');
+      index = (index + 1) % images.length;
+    }, 5000);
+
+  } catch (err) {
+    console.error('Hero fetch failed:', err);
+  }
+}
+
+// ===============================
+// PRODUCTS
+// ===============================
+async function fetchProducts(){
+  try {
+    const res = await fetch(`${API_BASE}/api/products`);
+    const products = await res.json();
+
+    const grid = document.getElementById('productGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    products.forEach(p => {
+      grid.innerHTML += `
+        <div class="product-card">
+          <img src="${p.mainImage}" alt="${p.name}">
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <span>₦${p.price}</span>
+            <button onclick='addToCart(${JSON.stringify(p)})'>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.error('Product fetch failed:', err);
+  }
+}
+
+// ===============================
+// INIT
+// ===============================
 updateCartCount();
 fetchHeroes();
 fetchProducts();
 </script>
-
 </body>
 </html>
