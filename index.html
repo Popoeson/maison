@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAISON • Boutique</title>
 
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500,600&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -15,11 +18,13 @@
   --accent-olive:#6B8E23;
 }
 
+/* Global styles */
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"Inter",sans-serif;background:var(--bg-main);color:var(--text-dark);}
 a{text-decoration:none;color:inherit;}
 h1,h2,h3{font-family:"Playfair Display",serif;}
 
+/* Blur effect when cart is open on mobile */
 .page-content.blur{
   filter:blur(5px);
 }
@@ -45,12 +50,13 @@ header{
 }
 .mobile-only{display:none;}
 
+/* Mobile nav menu */
 .mobile-nav{
   display:none;justify-content:center;gap:18px;
   padding:12px 0;border-top:1px solid #eee;
 }
 
-/* HERO */
+/* HERO SECTION */
 .hero{margin-top:90px;height:70vh;position:relative;overflow:hidden;}
 .hero img{position:absolute;width:100%;height:100%;object-fit:cover;opacity:0;transition:1s;}
 .hero img.active{opacity:1;}
@@ -71,7 +77,7 @@ header{
   cursor:pointer;
 }
 
-/* CART */
+/* CART STYLES */
 .cart-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.35);
@@ -89,6 +95,19 @@ header{
 }
 .cart-drawer.open{transform:translateX(0);}
 
+/* Close (x) button inside cart */
+.cart-close-btn{
+  position:absolute;
+  top:16px;
+  right:16px;
+  font-size:1.2rem;
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:#333;
+}
+
+/* Cart items */
 .cart-items{max-height:60vh;overflow:auto;}
 .cart-item{
   display:flex;gap:12px;align-items:center;margin-bottom:14px;
@@ -144,6 +163,7 @@ header{
   </div>
 </header>
 
+<!-- PAGE CONTENT -->
 <div class="page-content" id="pageContent">
   <section class="hero" id="heroSection"></section>
   <section class="section">
@@ -153,8 +173,13 @@ header{
   <footer class="footer"><p>©2024 Maison Boutique</p></footer>
 </div>
 
+<!-- CART OVERLAY -->
 <div class="cart-overlay" id="cartOverlay"></div>
+
+<!-- CART DRAWER -->
 <div class="cart-drawer" id="cartDrawer">
+  <!-- Close button (x) -->
+  <button class="cart-close-btn" onclick="closeCart()">×</button>
   <h3>Your Cart</h3>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-total" id="cartTotal"></div>
@@ -162,17 +187,23 @@ header{
 </div>
 
 <script>
+// Base API URL
 const API_BASE='https://maison-90o3.onrender.com';
+
+// Load cart from localStorage or initialize empty
 let cart=JSON.parse(localStorage.getItem('cart'))||[];
 
+// Check if mobile viewport
 const isMobile=()=>window.innerWidth<=768;
 
+// Update cart count badges
 function updateCartCount(){
   const count=cart.reduce((a,c)=>a+c.quantity,0);
   document.getElementById('cartCount').textContent=count;
   document.getElementById('cartCountMobile').textContent=count;
 }
 
+// Change item quantity in cart
 function changeQty(id,delta){
   const item=cart.find(i=>i._id===id);
   if(!item) return;
@@ -183,6 +214,7 @@ function changeQty(id,delta){
   renderCart();
 }
 
+// Render cart items
 function renderCart(){
   const cartItems=document.getElementById('cartItems');
   const cartTotal=document.getElementById('cartTotal');
@@ -207,6 +239,7 @@ function renderCart(){
   cartTotal.textContent=`Total: ₦${total}`;
 }
 
+// Add product to cart
 function addToCart(p){
   const e=cart.find(i=>i._id===p._id);
   e?e.quantity++:cart.push({...p,quantity:1});
@@ -215,6 +248,7 @@ function addToCart(p){
   renderCart();
 }
 
+// Toggle cart open/close
 function toggleCart(){
   const cartDrawer=document.getElementById('cartDrawer');
   const cartOverlay=document.getElementById('cartOverlay');
@@ -226,7 +260,7 @@ function toggleCart(){
     cartOverlay.classList.toggle('show');
     pageContent.classList.toggle('blur');
   } else {
-    // For desktop, show overlay but no blur
+    // Desktop overlay handling
     if(cartDrawer.classList.contains('open')) cartOverlay.style.display='block';
     else cartOverlay.style.display='none';
   }
@@ -234,17 +268,20 @@ function toggleCart(){
   renderCart();
 }
 
-// Close cart on overlay click
-document.getElementById('cartOverlay').addEventListener('click',()=>{
+// Close cart (for x button)
+function closeCart(){
   const cartDrawer=document.getElementById('cartDrawer');
+  const cartOverlay=document.getElementById('cartOverlay');
   const pageContent=document.getElementById('pageContent');
-  if(cartDrawer.classList.contains('open')){
-    cartDrawer.classList.remove('open');
-    if(isMobile()) pageContent.classList.remove('blur');
-    document.getElementById('cartOverlay').style.display='none';
-  }
-});
+  cartDrawer.classList.remove('open');
+  cartOverlay.style.display='none';
+  if(isMobile()) pageContent.classList.remove('blur');
+}
 
+// Close cart on overlay click
+document.getElementById('cartOverlay').addEventListener('click', closeCart);
+
+// Fetch hero images for carousel
 async function fetchHeroes(){
   const res = await fetch(`${API_BASE}/api/hero-images`);
   const data = await res.json();
@@ -261,6 +298,7 @@ async function fetchHeroes(){
     heroSection.appendChild(img);
   });
 
+  // Carousel rotation
   setInterval(()=>{
     const images = heroSection.querySelectorAll('img');
     images.forEach(img => img.classList.remove('active'));
@@ -269,6 +307,7 @@ async function fetchHeroes(){
   }, 5000);
 }
 
+// Fetch products and display
 async function fetchProducts(){
   const data=await (await fetch(`${API_BASE}/api/products`)).json();
   const productGrid=document.getElementById('productGrid');
@@ -286,6 +325,7 @@ async function fetchProducts(){
   });
 }
 
+// Initialize
 updateCartCount();
 fetchHeroes();
 fetchProducts();
