@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAISON • Boutique</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500,600&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+  --bg-main:#F5F0E1;
+  --text-dark:#2A2A2A;
+  --accent-olive:#6B8E23;
+}
+
+/* Global styles */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Inter",sans-serif;background:var(--bg-main);color:var(--text-dark);}
+a{text-decoration:none;color:inherit;}
+h1,h2,h3{font-family:"Playfair Display",serif;}
+
+/* Blur effect when cart is open on mobile */
+.page-content.blur{
+  filter:blur(5px);
+}
+
+/* HEADER */
+header{
+  position:fixed;top:0;width:100%;
+  background:rgba(255,255,255,0.96);
+  z-index:1000;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+.header-top{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 24px;
+}
+.logo{font-size:22px;letter-spacing:2px;}
+.nav-links{display:flex;gap:18px;align-items:center;}
+.cart-btn{position:relative;cursor:pointer;}
+.cart-btn span{
+  position:absolute;top:-6px;right:-8px;
+  background:var(--accent-olive);color:#fff;
+  font-size:10px;padding:2px 6px;border-radius:50%;
+}
+.mobile-only{display:none;}
+
+/* Mobile nav menu */
+.mobile-nav{
+  display:none;justify-content:center;gap:18px;
+  padding:12px 0;border-top:1px solid #eee;
+}
+
+/* HERO SECTION */
+.hero{margin-top:90px;height:70vh;position:relative;overflow:hidden;}
+
+.hero img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:1s;
+  z-index:1;
+}
+.hero img.active{
+  opacity:1;
+}
+
+.hero-content .btn{
+  padding:12px 28px;
+  border-radius:999px;
+  border:none;
+  background:var(--accent-olive);
+  color:#fff;
+  cursor:pointer;
+  font-weight:500;
+}
+
+.hero-content{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  color:#fff;
+background:linear-gradient(
+    rgba(0,0,0,0.25),
+    rgba(0,0,0,0.45)
+  );
+/*background:rgba(0,0,0,0.2);*/
+ /* background:rgba(0,0,0,0.35);  optional overlay tint */
+  z-index:2;
+  padding:20px;
+}
+
+/* PRODUCTS */
+.section{padding:60px 16px;max-width:1200px;margin:auto;}
+.section h2{text-align:center;font-size:1.8rem;margin-bottom:32px;}
+.product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.product-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.05);}
+.product-card img{width:100%;height:180px;object-fit:cover;}
+.product-info{padding:12px;}
+.product-info h3{font-size:1rem;margin-bottom:4px;}
+.product-info span{color:var(--accent-olive);font-weight:600;font-size:0.9rem;}
+.product-info button{
+  width:100%;margin-top:6px;padding:8px;
+  border:none;border-radius:999px;
+  background:var(--accent-olive);color:#fff;font-size:0.85rem;
+  cursor:pointer;
+}
+
+/* CART STYLES */
+.cart-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.35);
+  display:none;z-index:1100;
+}
+.cart-overlay.show{display:block;}
+
+.cart-drawer{
+  position:fixed;top:0;right:0;
+  width:360px;height:100%;
+  background:#fff;padding:20px;
+  box-shadow:-6px 0 20px rgba(0,0,0,0.1);
+  transform:translateX(100%);
+  transition:0.3s;z-index:1200;
+}
+.cart-drawer.open{transform:translateX(0);}
+
+/* Close (x) button inside cart */
+.cart-close-btn{
+  position:absolute;
+  top:16px;
+  right:16px;
+  font-size:1.2rem;
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:#333;
+}
+
+/* Cart items container */
+.cart-items{
+  max-height:60vh;
+  overflow:auto;
+  padding-right:4px;
+}
+
+/* Cart item card */
+.cart-item{
+  background:#fafafa;
+  border-radius:14px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:70px 1fr;
+  gap:12px;
+  margin-bottom:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Product image */
+.cart-item img{
+  width:70px;
+  height:70px;
+  border-radius:10px;
+  object-fit:cover;
+}
+
+/* Item details */
+.cart-item > div{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* Product name */
+.cart-item strong{
+  font-size:0.95rem;
+  font-weight:600;
+  margin-bottom:2px;
+}
+
+/* Price text */
+.cart-item .item-price{
+  font-size:0.85rem;
+  color:#777;
+  margin-bottom:6px;
+}
+
+/* Quantity + total row */
+.cart-item-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* Quantity controls */
+.qty-controls{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.qty-controls button{
+  width:26px;
+  height:26px;
+  border:none;
+  border-radius:50%;
+  cursor:pointer;
+  background:#eaeaea;
+  font-weight:600;
+  transition:0.2s;
+}
+
+.qty-controls button:hover{
+  background:#ddd;
+}
+
+/* Item total */
+.item-total{
+  font-size:0.9rem;
+  font-weight:600;
+  color:var(--accent-olive);
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav-links{display:none;}
+  .mobile-only{display:block;}
+  .mobile-nav{display:flex;}
+  .product-grid{grid-template-columns:repeat(2,1fr);}
+  .cart-drawer{
+    width:90%;right:2%;top:10%;height:80%;
+    border-radius:16px;
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:blur(16px);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">MAISON</div>
+    <div class="nav-links">
+      <a href="#">Shop</a><a href="#">About</a><a href="#">Contact</a>
+      <div class="cart-btn" onclick="toggleCart()">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span id="cartCount">0</span>
+      </div>
+    </div>
+    <div class="cart-btn mobile-only" onclick="toggleCart()">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span id="cartCountMobile">0</span>
+    </div>
+  </div>
+  <div class="mobile-nav">
+    <a href="#">Shop</a><a href="#">About</a><a href="#">Contact</a>
+  </div>
+</header>
+
+<!-- PAGE CONTENT -->
+<div class="page-content" id="pageContent">
+
+ <section class="hero" id="heroSection">
+<div class="hero-content">
+    <h1>Curated Essentials for Modern Living</h1>
+    <p>Timeless design, sustainable materials, and craftsmanship that speaks for itself.</p>
+    <button class="btn">Shop Now</button>
+  </div>
+</section>
+
+  <section class="section">
+    <h2>Featured Products</h2>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+  <footer class="footer"><p>©2024 Maison Boutique</p></footer>
+</div>
+
+<!-- CART OVERLAY -->
+<div class="cart-overlay" id="cartOverlay"></div>
+
+<!-- CART DRAWER -->
+<div class="cart-drawer" id="cartDrawer">
+  <!-- Close button (x) -->
+  <button class="cart-close-btn" onclick="closeCart()">×</button>
+  <h3>Your Cart</h3>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-total" id="cartTotal"></div>
+  <button class="checkout-btn">Checkout</button>
+</div>
+
+<script>
+// Base API URL
+const API_BASE='https://maison-90o3.onrender.com';
+
+// Load cart from localStorage or initialize empty
+let cart=JSON.parse(localStorage.getItem('cart'))||[];
+
+// Check if mobile viewport
+const isMobile=()=>window.innerWidth<=768;
+
+// Update cart count badges
+function updateCartCount(){
+  const count=cart.reduce((a,c)=>a+c.quantity,0);
+  document.getElementById('cartCount').textContent=count;
+  document.getElementById('cartCountMobile').textContent=count;
+}
+
+// Change item quantity in cart
+function changeQty(id,delta){
+  const item=cart.find(i=>i._id===id);
+  if(!item) return;
+  item.quantity+=delta;
+  if(item.quantity<=0) cart=cart.filter(i=>i._id!==id);
+  localStorage.setItem('cart',JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+}
+
+// Render cart items
+function renderCart(){
+  const cartItems=document.getElementById('cartItems');
+  const cartTotal=document.getElementById('cartTotal');
+  cartItems.innerHTML='';
+  let total=0;
+  cart.forEach(i=>{
+    total+=i.price*i.quantity;
+    cartItems.innerHTML+=`
+      <div class="cart-item">
+        <img src="${i.mainImage}">
+        <div>
+          <strong>${i.name}</strong>
+          <div class="qty-controls">
+            <button onclick="changeQty('${i._id}',-1)">−</button>
+            ${i.quantity}
+            <button onclick="changeQty('${i._id}',1)">+</button>
+          </div>
+          ₦${i.price*i.quantity}
+        </div>
+      </div>`;
+  });
+  cartTotal.textContent=`Total: ₦${total}`;
+}
+
+// Add product to cart
+function addToCart(p){
+  const e=cart.find(i=>i._id===p._id);
+  e?e.quantity++:cart.push({...p,quantity:1});
+  localStorage.setItem('cart',JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+}
+
+// Toggle cart open/close
+function toggleCart(){
+  const cartDrawer=document.getElementById('cartDrawer');
+  const cartOverlay=document.getElementById('cartOverlay');
+  const pageContent=document.getElementById('pageContent');
+
+  cartDrawer.classList.toggle('open');
+
+  if(isMobile()){
+    cartOverlay.classList.toggle('show');
+    pageContent.classList.toggle('blur');
+  } else {
+    // Desktop overlay handling
+    if(cartDrawer.classList.contains('open')) cartOverlay.style.display='block';
+    else cartOverlay.style.display='none';
+  }
+
+  renderCart();
+}
+
+// Close cart (for x button)
+function closeCart(){
+  const cartDrawer=document.getElementById('cartDrawer');
+  const cartOverlay=document.getElementById('cartOverlay');
+  const pageContent=document.getElementById('pageContent');
+  cartDrawer.classList.remove('open');
+  cartOverlay.style.display='none';
+  if(isMobile()) pageContent.classList.remove('blur');
+}
+
+// Close cart on overlay click
+document.getElementById('cartOverlay').addEventListener('click', closeCart);
+
+// Fetch hero images for carousel
+async function fetchHeroes(){
+  const res = await fetch(`${API_BASE}/api/hero-images`);
+  const data = await res.json();
+  const heroSection = document.getElementById('heroSection');
+
+  let index = 0;
+  const activeImages = data.filter(h => h.isActive);
+  if(activeImages.length === 0) return;
+
+  activeImages.forEach((h,i)=>{
+    const img = document.createElement('img');
+    img.src = h.imageUrl;
+    if(i===0) img.classList.add('active');
+    heroSection.appendChild(img);
+  });
+
+  // Carousel rotation
+  setInterval(()=>{
+    const images = heroSection.querySelectorAll('img');
+    images.forEach(img => img.classList.remove('active'));
+    images[index].classList.add('active');
+    index = (index+1) % images.length;
+  }, 5000);
+}
+
+// Fetch products and display
+async function fetchProducts(){
+  const data=await (await fetch(`${API_BASE}/api/products`)).json();
+  const productGrid=document.getElementById('productGrid');
+  productGrid.innerHTML='';
+  data.forEach(p=>{
+    productGrid.innerHTML+=`
+      <div class="product-card">
+        <img src="${p.mainImage}">
+        <div class="product-info">
+          <h3>${p.name}</h3>
+          <span>₦${p.price}</span>
+          <button onclick='addToCart(${JSON.stringify(p)})'>Add to Cart</button>
+        </div>
+      </div>`;
+  });
+}
+
+// Initialize
+updateCartCount();
+fetchHeroes();
+fetchProducts();
+</script>
+
+</body>
+</html>
