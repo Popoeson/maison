@@ -5,31 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAISON • Boutique</title>
 
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500,600&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 :root{
   --bg-main:#F5F0E1;
-  --glass-bg:rgba(255,255,255,0.55);
-  --glass-border:rgba(255,255,255,0.35);
   --text-dark:#2A2A2A;
   --text-light:#fff;
   --accent-olive:#6B8E23;
-  --blur:blur(18px);
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:"Inter",sans-serif;color:var(--text-dark);background:var(--bg-main);}
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--bg-main);
+  color:var(--text-dark);
+}
+body.blur{filter:blur(4px);}
+
 a{text-decoration:none;color:inherit;}
 h1,h2,h3{font-family:"Playfair Display",serif;}
 
-/* ===================== HEADER ===================== */
+/* ================= HEADER ================= */
 header{
   position:fixed;
   top:0;
   width:100%;
-  background:rgba(255,255,255,0.95);
-  z-index:999;
+  background:rgba(255,255,255,0.96);
+  z-index:1000;
   box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
 
@@ -42,22 +49,21 @@ header{
 
 .logo{
   font-size:24px;
-  font-weight:600;
   letter-spacing:2px;
 }
 
-.nav-links a{
-  margin-left:24px;
-  font-weight:500;
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:24px;
 }
 
-.cart{
+.cart-btn{
   position:relative;
   cursor:pointer;
-  margin-left:24px;
 }
 
-.cart span{
+.cart-btn span{
   position:absolute;
   top:-6px;
   right:-8px;
@@ -77,11 +83,11 @@ header{
   border-top:1px solid #eee;
 }
 
-/* ===================== HERO ===================== */
+/* ================= HERO ================= */
 .hero{
-  position:relative;
+  margin-top:110px;
   height:90vh;
-  margin-top:96px;
+  position:relative;
   overflow:hidden;
 }
 .hero img{
@@ -94,10 +100,10 @@ header{
 }
 .hero img.active{opacity:1;}
 
-/* ===================== PRODUCTS ===================== */
+/* ================= PRODUCTS ================= */
 .section{
   padding:80px 24px;
-  max-width:1200px;
+  max-width:1300px;
   margin:auto;
 }
 .section h2{
@@ -120,7 +126,7 @@ header{
 }
 .product-card img{
   width:100%;
-  height:200px;
+  height:220px;
   object-fit:cover;
 }
 .product-info{
@@ -135,7 +141,6 @@ header{
   color:var(--accent-olive);
 }
 .product-info button{
-  margin-top:10px;
   width:100%;
   padding:10px;
   border:none;
@@ -145,25 +150,69 @@ header{
   cursor:pointer;
 }
 
-/* ===================== TOAST ===================== */
-.toast{
+/* ================= CART DRAWER ================= */
+.cart-overlay{
   position:fixed;
-  bottom:30px;
-  right:30px;
-  background:#222;
-  color:#fff;
-  padding:14px 20px;
-  border-radius:12px;
-  opacity:0;
-  transform:translateY(20px);
-  transition:0.3s;
-}
-.toast.show{
-  opacity:1;
-  transform:translateY(0);
+  inset:0;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  z-index:1100;
 }
 
-/* ===================== FOOTER ===================== */
+.cart-drawer{
+  position:fixed;
+  top:0;
+  right:0;
+  width:360px;
+  height:100%;
+  background:#fff;
+  padding:24px;
+  box-shadow:-6px 0 20px rgba(0,0,0,0.1);
+  transform:translateX(100%);
+  transition:0.3s;
+  z-index:1200;
+}
+
+.cart-drawer.open{transform:translateX(0);}
+.cart-overlay.show{display:block;}
+
+.cart-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.cart-items{
+  max-height:60vh;
+  overflow:auto;
+}
+
+.cart-item{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:16px;
+  font-size:0.9rem;
+}
+
+.cart-total{
+  margin-top:20px;
+  font-weight:600;
+}
+
+.checkout-btn{
+  margin-top:20px;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:var(--accent-olive);
+  color:#fff;
+  font-size:1rem;
+  cursor:pointer;
+}
+
+/* ================= FOOTER ================= */
 .footer{
   background:#222;
   color:#fff;
@@ -171,12 +220,18 @@ header{
   text-align:center;
 }
 
-/* ===================== RESPONSIVE ===================== */
+/* ================= RESPONSIVE ================= */
 @media(max-width:768px){
   .nav-links{display:none;}
   .mobile-nav{display:flex;}
-  .logo{margin:auto;}
   .product-grid{grid-template-columns:repeat(2,1fr);}
+  .cart-drawer{
+    width:90%;
+    right:5%;
+    top:10%;
+    height:80%;
+    border-radius:16px;
+  }
 }
 </style>
 </head>
@@ -191,10 +246,16 @@ header{
       <a href="#">Shop</a>
       <a href="#">About</a>
       <a href="#">Contact</a>
-      <div class="cart">🛒 <span id="cartCount">0</span></div>
+      <div class="cart-btn" onclick="toggleCart()">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span id="cartCount">0</span>
+      </div>
     </div>
 
-    <div class="cart mobile-cart">🛒 <span id="cartCountMobile">0</span></div>
+    <div class="cart-btn mobile-only" onclick="toggleCart()">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span id="cartCountMobile">0</span>
+    </div>
   </div>
 
   <div class="mobile-nav">
@@ -213,73 +274,78 @@ header{
 
 <footer class="footer">
   <h3>MAISON</h3>
-  <p>A curated boutique for the modern minimalist.</p>
   <p>©2024 Maison Boutique</p>
 </footer>
 
-<div class="toast" id="toast"></div>
+<!-- CART -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <i class="fa-solid fa-xmark" onclick="toggleCart()" style="cursor:pointer;"></i>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-total" id="cartTotal"></div>
+  <button class="checkout-btn">Checkout</button>
+</div>
 
 <script>
 const API_BASE='https://maison-90o3.onrender.com';
-
-/* ===================== CART ===================== */
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 function updateCartCount(){
   const count = cart.reduce((a,c)=>a+c.quantity,0);
-  document.getElementById('cartCount').innerText = count;
-  document.getElementById('cartCountMobile').innerText = count;
+  cartCount.innerText = count;
+  cartCountMobile.innerText = count;
+}
+
+function renderCart(){
+  cartItems.innerHTML='';
+  let total=0;
+  cart.forEach(item=>{
+    total += item.price * item.quantity;
+    cartItems.innerHTML += `
+      <div class="cart-item">
+        <div>${item.name} × ${item.quantity}</div>
+        <div>₦${item.price * item.quantity}</div>
+      </div>
+    `;
+  });
+  cartTotal.innerText = `Total: ₦${total}`;
 }
 
 function addToCart(product){
-  const existing = cart.find(i => i._id === product._id);
-  if(existing){
-    existing.quantity += 1;
-  }else{
-    cart.push({...product, quantity:1});
-  }
-  localStorage.setItem('cart', JSON.stringify(cart));
+  const existing = cart.find(i=>i._id===product._id);
+  if(existing) existing.quantity++;
+  else cart.push({...product,quantity:1});
+  localStorage.setItem('cart',JSON.stringify(cart));
   updateCartCount();
-  showToast('Added to cart');
+  renderCart();
 }
 
-/* ===================== TOAST ===================== */
-function showToast(msg){
-  const toast = document.getElementById('toast');
-  toast.innerText = msg;
-  toast.classList.add('show');
-  setTimeout(()=>toast.classList.remove('show'),2500);
+function toggleCart(){
+  cartDrawer.classList.toggle('open');
+  cartOverlay.classList.toggle('show');
+  renderCart();
 }
 
-/* ===================== HERO ===================== */
 async function fetchHeroes(){
   const res = await fetch(`${API_BASE}/api/hero-images`);
   const data = await res.json();
-  const hero = document.getElementById('heroSection');
-  const active = data.filter(h=>h.isActive);
-  active.forEach((h,i)=>{
-    const img = document.createElement('img');
-    img.src = h.imageUrl;
+  data.filter(h=>h.isActive).forEach((h,i)=>{
+    const img=document.createElement('img');
+    img.src=h.imageUrl;
     if(i===0) img.classList.add('active');
-    hero.appendChild(img);
+    heroSection.appendChild(img);
   });
-  let i=0;
-  setInterval(()=>{
-    const imgs = hero.querySelectorAll('img');
-    imgs.forEach(img=>img.classList.remove('active'));
-    imgs[i].classList.add('active');
-    i=(i+1)%imgs.length;
-  },5000);
 }
 
-/* ===================== PRODUCTS ===================== */
 async function fetchProducts(){
   const res = await fetch(`${API_BASE}/api/products`);
   const data = await res.json();
-  const grid = document.getElementById('productGrid');
-  grid.innerHTML='';
+  productGrid.innerHTML='';
   data.forEach(p=>{
-    grid.innerHTML += `
+    productGrid.innerHTML+=`
       <div class="product-card">
         <img src="${p.mainImage}">
         <div class="product-info">
@@ -293,7 +359,6 @@ async function fetchProducts(){
   });
 }
 
-/* INIT */
 updateCartCount();
 fetchHeroes();
 fetchProducts();
