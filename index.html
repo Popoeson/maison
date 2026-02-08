@@ -226,12 +226,30 @@ function toggleCart(){
 }
 
 async function fetchHeroes(){
-  const d=await (await fetch(`${API_BASE}/api/hero-images`)).json();
-  d.filter(h=>h.isActive).forEach((h,i)=>{
-    const img=new Image();img.src=h.imageUrl;
+  const res = await fetch(`${API_BASE}/api/hero-images`);
+  const data = await res.json();
+  const heroSection = document.getElementById('heroSection');
+  heroSection.innerHTML = '<div class="hero-content">' + heroSection.innerHTML + '</div>';
+
+  let index = 0;
+  const activeImages = data.filter(h => h.isActive);
+  if(activeImages.length === 0) return;
+
+  // Inject images
+  activeImages.forEach((h,i)=>{
+    const img = document.createElement('img');
+    img.src = h.imageUrl;
     if(i===0) img.classList.add('active');
     heroSection.appendChild(img);
   });
+
+  // Carousel effect
+  setInterval(()=>{
+    const images = heroSection.querySelectorAll('img');
+    images.forEach(img => img.classList.remove('active'));
+    images[index].classList.add('active');
+    index = (index+1) % images.length;
+  }, 5000);
 }
 
 async function fetchProducts(){
