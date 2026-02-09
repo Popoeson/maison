@@ -496,6 +496,55 @@ async function fetchFeaturedProducts(){
   }
 }
 
+//=========================
+// MAGNIFICATION LOGIC
+//=========================
+function activateCenterCard(){
+  const track = document.getElementById('featuredTrack');
+  const cards = [...track.children];
+
+  const center = track.scrollLeft + track.offsetWidth / 2;
+
+  cards.forEach(card=>{
+    const cardCenter =
+      card.offsetLeft + card.offsetWidth / 2;
+
+    card.classList.toggle(
+      'active',
+      Math.abs(center - cardCenter) < card.offsetWidth / 2
+    );
+  });
+}
+
+document.getElementById('featuredTrack')
+  ?.addEventListener('scroll', activateCenterCard);
+
+//=====================
+// AUTOPLAY LOGIC
+//======================
+function startAutoplay(){
+  stopAutoplay();
+
+  const track = document.getElementById('featuredTrack');
+
+  autoScrollInterval = setInterval(()=>{
+    track.scrollBy({
+      left: track.offsetWidth / 5,
+      behavior: 'smooth'
+    });
+  }, 3500);
+}
+
+function stopAutoplay(){
+  if(autoScrollInterval){
+    clearInterval(autoScrollInterval);
+  }
+}
+
+const track = document.getElementById('featuredTrack');
+track?.addEventListener('mouseenter', stopAutoplay);
+track?.addEventListener('mouseleave', startAutoplay);
+
 // ===============================
 // INIT
 // ===============================
