@@ -387,6 +387,7 @@ function renderCart(){
     const t=i.price*i.quantity;
     total+=t;
     cartItems.innerHTML+=`
+       
       <div class="cart-item">
         <img src="${i.mainImage}">
         <div>
@@ -454,7 +455,8 @@ function renderProducts(){
 
   pageItems.forEach(p=>{
     productGrid.innerHTML+=`
-      <div class="product-card">
+      <div class="product-card"
+     onclick="openImagePreview('${p.mainImage}', '${p.name}')">
         <img src="${p.mainImage}">
         <div class="product-info">
           <h3>${p.name}</h3>
