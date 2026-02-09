@@ -297,6 +297,19 @@ tr:not(:last-child){
   padding: 2px 6px;
   border-radius: 8px;
 }
+.preview button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  border:none;
+  background:#C0392B;
+  color:#fff;
+  border-radius:50%;
+  width:16px;
+  height:16px;
+  cursor:pointer;
+}
 
 /* ===================== RESPONSIVE ===================== */
 @media(max-width:900px){
@@ -356,7 +369,6 @@ tr:not(:last-child){
 
     <!-- PRODUCTS -->
     <section id="products" class="page">
-
       <div style="display:flex; justify-content:space-between; margin-bottom:18px; align-items:center;">
         <h3 style="font-family:'Playfair Display',serif;">Products</h3>
         <button class="btn" onclick="openModal('add')">+ Add Product</button>
@@ -383,7 +395,7 @@ tr:not(:last-child){
         <table>
           <thead>
             <tr>
-              <th>Main Image</th>
+              <th>Images</th>
               <th>Name</th>
               <th>Category</th>
               <th>Price</th>
@@ -435,10 +447,8 @@ tr:not(:last-child){
       <input type="checkbox" id="productFeatured"> Featured Product
     </label>
     <input type="number" id="imageCount" placeholder="Number of images (min 1)" min="1" max="5">
-
     <div id="imageInputs"></div>
     <div id="imagePreview" class="preview-grid"></div>
-
     <button class="btn" id="modalBtn">Create Product</button>
     <button class="btn" style="background:#ccc;color:#333;" onclick="closeModal()">Cancel</button>
   </div>
@@ -461,25 +471,22 @@ const loadingOverlay = document.getElementById("loadingOverlay");
 
 let editProductId = null;
 let allProducts = []; // for filtering
+let existingImages = []; // for editing
 
 /* ===================== SIDEBAR ===================== */
 function toggleSidebar(){  
   sidebar.classList.toggle("show");  
   overlay.classList.toggle("show");  
 }
-
 overlay.addEventListener("click", ()=>{  
   sidebar.classList.remove("show");  
   overlay.classList.remove("show");  
 });
-
 function showPage(id, el){  
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));  
   document.getElementById(id).classList.add("active");  
-
   document.querySelectorAll(".sidebar li").forEach(li=>li.classList.remove("active"));  
   el.classList.add("active");  
-
   sidebar.classList.remove("show");  
   overlay.classList.remove("show");  
 }
@@ -488,16 +495,21 @@ function showPage(id, el){
 function openModal(mode = 'add', product = {}) {
   modal.style.display = "flex";
   editProductId = null;
+  existingImages = product.images || [];
 
   document.getElementById("productName").value = product.name || '';
   document.getElementById("productPrice").value = product.price || '';
   document.getElementById("productQuantity").value = product.quantity || '';
-  document.getElementById("productCategory").value = product.category || 'Apparel';
+  document.getElementById("productCategory").value = product.category || 'Gown';
   document.getElementById("productDescription").value = product.description || '';
   document.getElementById("productFeatured").checked = product.featured || false;
   document.getElementById("imageCount").value = '';
   document.getElementById("imageInputs").innerHTML = '';
   imagePreview.innerHTML = '';
+
+  if (existingImages.length) {
+    renderExistingImages();
+  }
 
   if (mode === 'edit') {
     editProductId = product._id;
@@ -512,15 +524,15 @@ function openModal(mode = 'add', product = {}) {
 function closeModal() {
   modal.style.display = "none";
   editProductId = null;
+  existingImages = [];
 }
 
-/* ===================== LOADING OVERLAY ===================== */
+/* ===================== LOADING ===================== */
 function showLoading() {
   loadingOverlay.style.display = "flex";
   modal.querySelectorAll("input, textarea, select, button")
     .forEach(el => el.disabled = true);
 }
-
 function hideLoading() {
   loadingOverlay.style.display = "none";
   modal.querySelectorAll("input, textarea, select, button")
@@ -541,33 +553,60 @@ document.getElementById("imageCount").addEventListener("input", e => {
   const count = +e.target.value;
   const inputs = document.getElementById("imageInputs");
   inputs.innerHTML = '';
-  imagePreview.innerHTML = '';
-
+  // new uploads only
   for(let i=0;i<count;i++){
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
-    input.onchange = previewImages;
+    input.onchange = previewNewImages;
     inputs.appendChild(input);
   }
 });
 
-function previewImages(){
+function renderExistingImages(){
   imagePreview.innerHTML = '';
-  const files = document.querySelectorAll('#imageInputs input[type="file"]');
+  existingImages.forEach((url, i) => {
+    const div = document.createElement('div');
+    div.className = 'preview';
+    div.innerHTML = `
+      <img src="${url}">
+      ${i === 0 ? '<span>Main</span>' : ''}
+      <button onclick="removeExistingImage(${i})">&times;</button>
+    `;
+    imagePreview.appendChild(div);
+  });
+}
+
+function removeExistingImage(index){
+  if(confirm("Remove this image?")){
+    existingImages.splice(index,1);
+    renderExistingImages();
+  }
+}
+
+function previewNewImages(){
+  imagePreview.innerHTML = '';
+  const files = Array.from(document.querySelectorAll('#imageInputs input[type="file"]'))
+                      .map(f => f.files[0])
+                      .filter(Boolean);
+
+  // Show existing images first
+  existingImages.forEach((url,i)=>{
+    const div = document.createElement('div');
+    div.className='preview';
+    div.innerHTML = `<img src="${url}">${i===0?'<span>Main</span>':''}<button onclick="removeExistingImage(${i})">&times;</button>`;
+    imagePreview.appendChild(div);
+  });
+
   files.forEach((f,i)=>{
-    if(!f.files[0]) return;
     const reader = new FileReader();
     reader.onload = e=>{
       const div = document.createElement('div');
       div.className='preview';
-      div.innerHTML = `
-        <img src="${e.target.result}">
-        ${i === 0 ? '<span>Main</span>' : ''}
-      `;
+      div.innerHTML = `<img src="${e.target.result}">`;
       imagePreview.appendChild(div);
     };
-    reader.readAsDataURL(f.files[0]);
+    reader.readAsDataURL(f);
   });
 }
 
@@ -577,7 +616,7 @@ async function fetchProducts(){
     showLoading();
     const res = await fetch(`${API_BASE}/api/products`);
     const data = await res.json();
-    allProducts = data; // store all products for filtering
+    allProducts = data;
     renderProducts(data);
   } catch(err) {
     toast("Failed to fetch products", "error");
@@ -591,17 +630,17 @@ function renderProducts(products){
   const tbody = document.getElementById("productsTable");
   tbody.innerHTML = '';
   products.forEach(p=>{
-    const mainImage = p.images && p.images.length > 0 ? p.images[0] : '';
+    const mainImage = p.images && p.images.length>0 ? p.images[0] : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-
-      <td><img src="${p.mainImage||p.imageUrl}" style="width:50px;border-radius:8px"></td>
-
+      <td>
+        <img src="${mainImage}" style="width:50px;border-radius:8px">
+      </td>
       <td>${p.name}</td>
       <td>${p.category}</td>
       <td>₦${Number(p.price).toLocaleString()}</td>
       <td>${p.quantity}</td>
-      <td>${p.featured ? 'Yes' : 'No'}</td>
+      <td>${p.featured?'Yes':'No'}</td>
       <td>
         <button class="btn" onclick='openModal("edit", ${JSON.stringify(p)})'>Edit</button>
         <button class="btn" style="background:#C0392B;" onclick='deleteProduct("${p._id}")'>Delete</button>
@@ -611,9 +650,8 @@ function renderProducts(products){
   });
 }
 
-/* ===================== CREATE / UPDATE PRODUCT ===================== */
-
-modalBtn.addEventListener("click", async () => {
+/* ===================== CREATE / UPDATE ===================== */
+modalBtn.addEventListener("click", async ()=>{
   const name = document.getElementById("productName").value;
   const price = +document.getElementById("productPrice").value;
   const quantity = +document.getElementById("productQuantity").value;
@@ -622,11 +660,10 @@ modalBtn.addEventListener("click", async () => {
   const featured = document.getElementById("productFeatured").checked;
 
   const files = Array.from(document.querySelectorAll("#imageInputs input[type=file]"))
-                      .map(f => f.files[0])
+                      .map(f=>f.files[0])
                       .filter(Boolean);
 
-  // Only require images if we're creating a new product
-  if (!name || !price || !quantity || (!editProductId && files.length === 0)) {
+  if(!name || !price || !quantity || (!editProductId && files.length===0)){
     toast("Please fill all required fields", "error");
     return;
   }
@@ -639,55 +676,59 @@ modalBtn.addEventListener("click", async () => {
   formData.append("description", description);
   formData.append("featured", featured);
 
-  // Only append images if user selected new ones
+  // Append new images
   files.forEach(f => formData.append("images", f));
+  // Append existing image URLs
+  if(editProductId && existingImages.length){
+    formData.append("existingImages", JSON.stringify(existingImages));
+  }
 
-  try {
+  try{
     showLoading();
     let url = `${API_BASE}/api/products`;
     let method = 'POST';
-    if (editProductId) {
+    if(editProductId){
       url = `${API_BASE}/api/products/${editProductId}`;
       method = 'PUT';
     }
-    const res = await fetch(url, { method, body: formData });
+    const res = await fetch(url,{method, body:formData});
     const data = await res.json();
-    if (res.ok) {
-      toast(editProductId ? "Product updated" : "Product created");
+    if(res.ok){
+      toast(editProductId?"Product updated":"Product created");
       closeModal();
       fetchProducts();
     } else {
-      toast(data.message || "Error occurred", "error");
+      toast(data.message||"Error occurred","error");
     }
-  } catch (err) {
-    toast("Error submitting product", "error");
+  }catch(err){
+    toast("Error submitting product","error");
     console.error(err);
-  } finally {
+  }finally{
     hideLoading();
   }
 });
 
-/* ===================== DELETE PRODUCT ===================== */
+/* ===================== DELETE ===================== */
 async function deleteProduct(id){
   if(!confirm("Are you sure you want to delete this product?")) return;
-  try {
+  try{
     showLoading();
-    const res = await fetch(`${API_BASE}/api/products/${id}`, { method:'DELETE' });
+    const res = await fetch(`${API_BASE}/api/products/${id}`,{method:'DELETE'});
     if(res.ok){
       toast("Product deleted");
       fetchProducts();
-    } else {
-      toast("Failed to delete product", "error");
+    }else{
+      toast("Failed to delete product","error");
     }
-  } catch(err){
-    toast("Error deleting product", "error");
+  }catch(err){
+    toast("Error deleting product","error");
     console.error(err);
-  } finally {
+  }finally{
     hideLoading();
   }
 }
 
-/* ===================== FILTER PRODUCTS ===================== */
+/* ===================== FILTER ===================== */
 function applyProductFilter(){
   const name = document.getElementById("searchName").value.toLowerCase();
   const category = document.getElementById("searchCategory").value;
@@ -695,15 +736,15 @@ function applyProductFilter(){
 
   const filtered = allProducts.filter(p=>{
     const matchName = p.name.toLowerCase().includes(name);
-    const matchCategory = category ? p.category === category : true;
-    const matchFeatured = featuredVal ? (p.featured.toString() === featuredVal) : true;
+    const matchCategory = category?p.category===category:true;
+    const matchFeatured = featuredVal?p.featured.toString()===featuredVal:true;
     return matchName && matchCategory && matchFeatured;
   });
 
   renderProducts(filtered);
 }
 
-/* ===================== INITIAL LOAD ===================== */
+/* ===================== INITIAL ===================== */
 fetchProducts();
 </script>
 </body>
