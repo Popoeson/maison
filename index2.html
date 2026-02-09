@@ -545,12 +545,30 @@ const track = document.getElementById('featuredTrack');
 track?.addEventListener('mouseenter', stopAutoplay);
 track?.addEventListener('mouseleave', startAutoplay);
 
+//=========================
+// ARROW BUTTON LOGIC
+//=========================
+document.getElementById('prevBtn')?.addEventListener('click',()=>{
+  featuredTrack.scrollBy({
+    left: -featuredTrack.offsetWidth / 5,
+    behavior:'smooth'
+  });
+});
+
+document.getElementById('nextBtn')?.addEventListener('click',()=>{
+  featuredTrack.scrollBy({
+    left: featuredTrack.offsetWidth / 5,
+    behavior:'smooth'
+  });
+});
+
 // ===============================
 // INIT
 // ===============================
 updateCartCount();
 fetchHeroes();
 fetchProducts();
+fetchFeaturedProducts();
 </script>
 </body>
 </html>
