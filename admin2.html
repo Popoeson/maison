@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MAISON Admin Panel</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg-main: #F5F0E1;
+  --bg-soft: #EFE9D8;
+  --glass-bg: rgba(255,255,255,0.55);
+  --glass-border: rgba(255,255,255,0.35);
+  --glass-dark: rgba(25,25,25,0.55);
+  --text-dark: #2A2A2A;
+  --text-muted: #6F6F6F;
+  --text-light: #FFFFFF;
+  --accent-olive: #6B8E23;
+  --accent-olive-soft: rgba(107,142,35,0.15);
+  --success: #6FAE7B;
+  --warning: #D6B85A;
+  --info: #6C8CBF;
+  --purple: #8B7BBE;
+  --blur: blur(18px);
+}
+
+*{margin:0; padding:0; box-sizing:border-box;}
+
+body{
+  min-height:100vh;
+  background: var(--bg-main);
+  color: var(--text-dark);
+  font-family: "Inter", sans-serif;
+}
+
+/* ===================== LAYOUT ===================== */
+.admin-wrapper{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar{
+  width:260px;
+  position:fixed;
+  inset:0 auto 0 0;
+  background: var(--glass-dark);
+  backdrop-filter: var(--blur);
+  border-right:1px solid rgba(255,255,255,0.2);
+  padding:28px 18px;
+  color: var(--text-light);
+  z-index:1000;
+  transition: transform .3s ease;
+}
+
+.sidebar h2{
+  font-family:"Playfair Display", serif;
+  letter-spacing:1px;
+  margin-bottom:40px;
+}
+
+.sidebar ul{ list-style:none; }
+.sidebar li{
+  padding:14px 16px;
+  border-radius:14px;
+  margin-bottom:10px;
+  cursor:pointer;
+}
+.sidebar li.active,
+.sidebar li:hover{
+  background: rgba(255,255,255,0.18);
+}
+
+/* ===================== OVERLAY ===================== */
+#overlay{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  z-index:900;
+}
+#overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* ===================== MAIN ===================== */
+.main{
+  margin-left:260px;
+  padding:28px;
+  width:100%;
+}
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 22px;
+  margin-bottom:28px;
+}
+.topbar strong{
+  font-family:"Playfair Display", serif;
+  letter-spacing:.8px;
+}
+.hamburger{
+  display:none;
+  font-size:22px;
+  cursor:pointer;
+}
+
+/* ===================== GLASS ===================== */
+.glass{
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  border:1px solid var(--glass-border);
+  border-radius:22px;
+}
+
+/* ===================== DASHBOARD ===================== */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:22px;
+  margin-bottom:32px;
+}
+.metric{
+  padding:22px;
+}
+.metric h4{
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  color: var(--text-muted);
+}
+.metric p{
+  font-size:28px;
+  font-weight:600;
+  margin-top:8px;
+}
+
+/* ===================== TABLE ===================== */
+.table-wrapper{
+  overflow-x:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:600px;
+}
+th,td{
+  padding:16px;
+  text-align:left;
+  font-size:14px;
+}
+th{
+  color: var(--text-muted);
+  font-weight:500;
+}
+tr:not(:last-child){
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+
+/* ===================== BUTTON ===================== */
+.btn{
+  padding:10px 22px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  background: var(--accent-olive);
+  color:#fff;
+  font-weight:500;
+}
+.btn:hover{
+  background:#5E7F1F;
+}
+
+/* ===================== PAGES ===================== */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===================== FOOTER ===================== */
+.footer{
+  margin-top:40px;
+  padding:16px;
+  text-align:center;
+  font-size:14px;
+  color: var(--text-muted);
+}
+
+/* ===================== MODAL ===================== */
+.modal{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
+}
+.modal-content{
+  width:90%;
+  max-width:480px;
+  padding:26px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.modal-content h3{
+  font-family:"Playfair Display", serif;
+  margin-bottom:8px;
+}
+.modal-content input,
+.modal-content textarea,
+.modal-content select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.1);
+  background:#fff;
+}
+
+/* ===================== TOAST ===================== */
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  padding: 14px 22px;
+  border-radius: 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  font-weight: 500;
+  z-index: 5000;
+  animation: slideIn .3s ease;
+}
+.toast.success { color: var(--accent-olive); }
+.toast.error { color: #C0392B; }
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===================== GLOBAL LOADING OVERLAY ===================== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 6000;
+}
+.loading-overlay .spinner { margin:0; }
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 4px solid rgba(0,0,0,0.1);
+  border-top-color: var(--accent-olive);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 12px auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===================== IMAGE PREVIEW ===================== */
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 70px);
+  gap: 10px;
+}
+.preview {
+  position: relative;
+}
+.preview img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.preview span {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 9px;
+  background: var(--accent-olive);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media(max-width:900px){
+  .metrics{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.show{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:block;}
+}
+</style>
+</head>
+<body> 
+
+<div class="admin-wrapper">
+  <aside class="sidebar" id="sidebar">
+    <h2>MAISON</h2>
+    <ul>
+      <li class="active" onclick="showPage('dashboard', this)">Dashboard</li>
+      <li onclick="showPage('products', this)">Products</li>
+      <li onclick="showPage('orders', this)">Orders</li>
+      <li onclick="window.location.href='hero.html'">Hero Images</li>
+    </ul>
+  </aside>
+
+  <div id="overlay"></div>
+
+  <main class="main">
+    <div class="topbar glass">
+      <span class="hamburger" onclick="toggleSidebar()">☰</span>
+      <strong>MAISON ADMIN PANEL</strong>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page active">
+      <div class="metrics">
+        <div class="metric glass"><h4>Total Revenue</h4><p id="totalRevenue">₦0</p></div>
+        <div class="metric glass"><h4>Total Orders</h4><p id="totalOrders">0</p></div>
+        <div class="metric glass"><h4>Total Products</h4><p id="totalProducts">0</p></div>
+        <div class="metric glass"><h4>Avg Order Value</h4><p id="avgOrder">₦0</p></div>
+      </div>
+      <div class="glass table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="products" class="page">
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:18px; align-items:center;">
+        <h3 style="font-family:'Playfair Display',serif;">Products</h3>
+        <button class="btn" onclick="openModal('add')">+ Add Product</button>
+      </div>
+
+      <!-- FILTERS -->
+      <div style="display:flex; gap:12px; margin-bottom:12px;">
+        <input type="text" id="searchName" placeholder="Search by name" style="padding:8px; border-radius:12px; border:1px solid #ccc;">
+        <select id="searchCategory" style="padding:8px; border-radius:12px; border:1px solid #ccc;">
+          <option value="">All Categories</option>
+          <option>Gown</option>
+          <option>Short</option>
+          <option>Top</option>
+        </select>
+        <select id="searchFeatured" style="padding:8px; border-radius:12px; border:1px solid #ccc;">
+          <option value="">All</option>
+          <option value="true">Featured</option>
+          <option value="false">Not Featured</option>
+        </select>
+        <button class="btn" onclick="applyProductFilter()">Filter</button>
+      </div>
+
+      <div class="glass table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Main Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Featured</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="orders" class="page">
+      <div class="glass table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="ordersList"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="footer glass">← Back to Store</div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content glass">
+    <h3 id="modalTitle">Add Product</h3>
+    <input type="text" id="productName" placeholder="Product Name">
+    <input type="number" id="productPrice" placeholder="Price">
+    <input type="number" id="productQuantity" placeholder="Quantity">
+    <select id="productCategory">
+      <option>Gown</option>
+      <option>Short</option>
+      <option>Top</option>
+    </select>
+    <textarea id="productDescription" placeholder="Description"></textarea>
+    <label>
+      <input type="checkbox" id="productFeatured"> Featured Product
+    </label>
+    <input type="number" id="imageCount" placeholder="Number of images (min 1)" min="1" max="5">
+
+    <div id="imageInputs"></div>
+    <div id="imagePreview" class="preview-grid"></div>
+
+    <button class="btn" id="modalBtn">Create Product</button>
+    <button class="btn" style="background:#ccc;color:#333;" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<script>
+const API_BASE = 'https://maison-90o3.onrender.com';
+
+const sidebar = document.getElementById("sidebar");
+const modal = document.getElementById("modal");
+const modalBtn = document.getElementById("modalBtn");
+const overlay = document.getElementById("overlay");
+const imagePreview = document.getElementById("imagePreview");
+const modalTitle = document.getElementById("modalTitle");
+const loadingOverlay = document.getElementById("loadingOverlay");
+
+let editProductId = null;
+let allProducts = []; // for filtering
+
+/* ===================== SIDEBAR ===================== */
+function toggleSidebar(){  
+  sidebar.classList.toggle("show");  
+  overlay.classList.toggle("show");  
+}
+
+overlay.addEventListener("click", ()=>{  
+  sidebar.classList.remove("show");  
+  overlay.classList.remove("show");  
+});
+
+function showPage(id, el){  
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));  
+  document.getElementById(id).classList.add("active");  
+
+  document.querySelectorAll(".sidebar li").forEach(li=>li.classList.remove("active"));  
+  el.classList.add("active");  
+
+  sidebar.classList.remove("show");  
+  overlay.classList.remove("show");  
+}
+
+/* ===================== MODAL ===================== */
+function openModal(mode = 'add', product = {}) {
+  modal.style.display = "flex";
+  editProductId = null;
+
+  document.getElementById("productName").value = product.name || '';
+  document.getElementById("productPrice").value = product.price || '';
+  document.getElementById("productQuantity").value = product.quantity || '';
+  document.getElementById("productCategory").value = product.category || 'Apparel';
+  document.getElementById("productDescription").value = product.description || '';
+  document.getElementById("productFeatured").checked = product.featured || false;
+  document.getElementById("imageCount").value = '';
+  document.getElementById("imageInputs").innerHTML = '';
+  imagePreview.innerHTML = '';
+
+  if (mode === 'edit') {
+    editProductId = product._id;
+    modalTitle.innerText = 'Edit Product';
+    modalBtn.innerText = 'Save Changes';
+  } else {
+    modalTitle.innerText = 'Add Product';
+    modalBtn.innerText = 'Create Product';
+  }
+}
+
+function closeModal() {
+  modal.style.display = "none";
+  editProductId = null;
+}
+
+/* ===================== LOADING OVERLAY ===================== */
+function showLoading() {
+  loadingOverlay.style.display = "flex";
+  modal.querySelectorAll("input, textarea, select, button")
+    .forEach(el => el.disabled = true);
+}
+
+function hideLoading() {
+  loadingOverlay.style.display = "none";
+  modal.querySelectorAll("input, textarea, select, button")
+    .forEach(el => el.disabled = false);
+}
+
+/* ===================== TOAST ===================== */
+function toast(msg, type='success'){
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3000);
+}
+
+/* ===================== IMAGE INPUTS ===================== */
+document.getElementById("imageCount").addEventListener("input", e => {
+  const count = +e.target.value;
+  const inputs = document.getElementById("imageInputs");
+  inputs.innerHTML = '';
+  imagePreview.innerHTML = '';
+
+  for(let i=0;i<count;i++){
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = previewImages;
+    inputs.appendChild(input);
+  }
+});
+
+function previewImages(){
+  imagePreview.innerHTML = '';
+  const files = document.querySelectorAll('#imageInputs input[type="file"]');
+  files.forEach((f,i)=>{
+    if(!f.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const div = document.createElement('div');
+      div.className='preview';
+      div.innerHTML = `
+        <img src="${e.target.result}">
+        ${i === 0 ? '<span>Main</span>' : ''}
+      `;
+      imagePreview.appendChild(div);
+    };
+    reader.readAsDataURL(f.files[0]);
+  });
+}
+
+/* ===================== FETCH & RENDER PRODUCTS ===================== */
+async function fetchProducts(){
+  try {
+    showLoading();
+    const res = await fetch(`${API_BASE}/products`);
+    const data = await res.json();
+    allProducts = data; // store all products for filtering
+    renderProducts(data);
+  } catch(err) {
+    toast("Failed to fetch products", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderProducts(products){
+  const tbody = document.getElementById("productsTable");
+  tbody.innerHTML = '';
+  products.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><img src="${p.images[0]}" width="70" height="70" style="object-fit:cover; border-radius:12px;"></td>
+      <td>${p.name}</td>
+      <td>${p.category}</td>
+      <td>₦${p.price}</td>
+      <td>${p.quantity}</td>
+      <td>${p.featured ? 'Yes' : 'No'}</td>
+      <td>
+        <button class="btn" onclick='openModal("edit", ${JSON.stringify(p)})'>Edit</button>
+        <button class="btn" style="background:#C0392B;" onclick='deleteProduct("${p._id}")'>Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ===================== CREATE / UPDATE PRODUCT ===================== */
+modalBtn.addEventListener("click", async ()=>{
+  const name = document.getElementById("productName").value;
+  const price = +document.getElementById("productPrice").value;
+  const quantity = +document.getElementById("productQuantity").value;
+  const category = document.getElementById("productCategory").value;
+  const description = document.getElementById("productDescription").value;
+  const featured = document.getElementById("productFeatured").checked;
+
+  const files = Array.from(document.querySelectorAll("#imageInputs input[type=file]"))
+                      .map(f=>f.files[0]).filter(Boolean);
+  if(!name || !price || !quantity || files.length===0){
+    toast("Please fill all required fields", "error");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("price", price);
+  formData.append("quantity", quantity);
+  formData.append("category", category);
+  formData.append("description", description);
+  formData.append("featured", featured);
+  files.forEach(f=> formData.append("images", f));
+
+  try {
+    showLoading();
+    let url = `${API_BASE}/products`;
+    let method = 'POST';
+    if(editProductId){
+      url = `${API_BASE}/products/${editProductId}`;
+      method = 'PUT';
+    }
+    const res = await fetch(url, { method, body: formData });
+    const data = await res.json();
+    if(res.ok){
+      toast(editProductId ? "Product updated" : "Product created");
+      closeModal();
+      fetchProducts();
+    } else {
+      toast(data.message || "Error occurred", "error");
+    }
+  } catch(err){
+    toast("Error submitting product", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+});
+
+/* ===================== DELETE PRODUCT ===================== */
+async function deleteProduct(id){
+  if(!confirm("Are you sure you want to delete this product?")) return;
+  try {
+    showLoading();
+    const res = await fetch(`${API_BASE}/products/${id}`, { method:'DELETE' });
+    if(res.ok){
+      toast("Product deleted");
+      fetchProducts();
+    } else {
+      toast("Failed to delete product", "error");
+    }
+  } catch(err){
+    toast("Error deleting product", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+/* ===================== FILTER PRODUCTS ===================== */
+function applyProductFilter(){
+  const name = document.getElementById("searchName").value.toLowerCase();
+  const category = document.getElementById("searchCategory").value;
+  const featuredVal = document.getElementById("searchFeatured").value;
+
+  const filtered = allProducts.filter(p=>{
+    const matchName = p.name.toLowerCase().includes(name);
+    const matchCategory = category ? p.category === category : true;
+    const matchFeatured = featuredVal ? (p.featured.toString() === featuredVal) : true;
+    return matchName && matchCategory && matchFeatured;
+  });
+
+  renderProducts(filtered);
+}
+
+/* ===================== INITIAL LOAD ===================== */
+fetchProducts();
+</script>
+</body>
+</html>
