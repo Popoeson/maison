@@ -232,6 +232,68 @@ header{
 @media(max-width:768px){
   .product-grid{grid-template-columns:repeat(2,1fr);}
 }
+
+/* ===============================
+   PRODUCT IMAGE PREVIEW MODAL
+================================ */
+.image-preview-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+}
+
+.image-preview-modal.active {
+  display: block;
+}
+
+/* Background overlay */
+.image-preview-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+/* Modal content */
+.image-preview-content {
+  position: relative;
+  z-index: 2;
+  max-width: 90vw;
+  max-height: 85vh;
+  margin: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Image constraint */
+.image-preview-content img {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Close button */
+.close-preview {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -269,6 +331,15 @@ header{
   <button class="checkout-btn">Checkout</button>
 </div>
 
+<!-- PRODUCT IMAGE PREVIEW MODAL -->
+<div id="imagePreviewModal" class="image-preview-modal">
+  <div class="image-preview-backdrop"></div>
+
+  <div class="image-preview-content">
+    <button class="close-preview" aria-label="Close preview">&times;</button>
+    <img id="previewImage" src="" alt="Product preview">
+  </div>
+</div>
 <script>
 const API_BASE = 'https://maison-90o3.onrender.com';
 
