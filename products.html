@@ -461,7 +461,10 @@ function renderProducts(){
         <div class="product-info">
           <h3>${p.name}</h3>
           <span>₦${Number(p.price).toLocaleString()}</span>
-          <button onclick="addToCartById('${p._id}')">Add to Cart</button>
+       <button onclick='event.stopPropagation(); addToCart(${JSON.stringify(p)})'>
+  Add to Cart
+</button>
+         
         </div>
       </div>`;
   });
