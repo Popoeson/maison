@@ -108,7 +108,7 @@ const uploadHeroToCloudinary = (buffer) => {
 // ---- Create Product ----
 app.post('/api/products', upload.array('images', 5), async (req, res) => {
   try {
-    const { name, category, price, description, quantity } = req.body;
+    const { name, category, price, description, quantity, featured } = req.body; // <-- include featured
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No images uploaded' });
@@ -126,6 +126,7 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
       price: Number(price),
       quantity: quantity ? Number(quantity) : 0,
       description,
+      featured: featured === 'true', // <-- convert to boolean
       mainImage,
       otherImages
     });
@@ -139,6 +140,35 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
   }
 });
 
+// ---- Update Product ----
+app.put('/api/products/:id', upload.array('images', 5), async (req,res)=>{
+  try {
+    const { name, category, price, description, quantity, featured } = req.body;
+
+    const updateData = {
+      name,
+      category,
+      price: Number(price),
+      description,
+      quantity: Number(quantity),
+      featured: featured === 'true' // <-- convert to boolean
+    };
+
+    if (req.files && req.files.length > 0) {
+      // Upload all new images
+      const uploadResults = await Promise.all(req.files.map(file => uploadToCloudinary(file.buffer)));
+      updateData.mainImage = uploadResults[0].secure_url;
+      updateData.otherImages = uploadResults.slice(1).map(r => r.secure_url);
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json(updatedProduct);
+
+  } catch(err){
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 // ---- Get All Products ----
 app.get('/api/products', async (req, res)=>{
   try {
@@ -155,28 +185,6 @@ app.delete('/api/products/:id', async (req,res)=>{
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
   } catch(err){
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// ---- Update Product ----
-app.put('/api/products/:id', upload.array('images', 5), async (req,res)=>{
-  try {
-    const { name, category, price, description, quantity } = req.body;
-    const updateData = { name, category, price: Number(price), description, quantity: Number(quantity) };
-
-    if (req.files && req.files.length > 0) {
-      // Upload all new images
-      const uploadResults = await Promise.all(req.files.map(file => uploadToCloudinary(file.buffer)));
-      updateData.mainImage = uploadResults[0].secure_url;
-      updateData.otherImages = uploadResults.slice(1).map(r => r.secure_url);
-    }
-
-    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    res.json(updatedProduct);
-
-  } catch(err){
-    console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });
