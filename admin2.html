@@ -591,12 +591,13 @@ function renderProducts(products){
   const tbody = document.getElementById("productsTable");
   tbody.innerHTML = '';
   products.forEach(p=>{
+    const mainImage = p.images && p.images.length > 0 ? p.images[0] : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><img src="${p.images[0]}" width="70" height="70" style="object-fit:cover; border-radius:12px;"></td>
+      <td><img src="${mainImage}" width="70" height="70" style="object-fit:cover; border-radius:12px;"></td>
       <td>${p.name}</td>
       <td>${p.category}</td>
-      <td>₦${p.price}</td>
+      <td>₦${Number(p.price).toLocaleString()}</td>
       <td>${p.quantity}</td>
       <td>${p.featured ? 'Yes' : 'No'}</td>
       <td>
