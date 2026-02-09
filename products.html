@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products • MAISON</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500,600&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+  --bg-main:#F5F0E1;
+  --text-dark:#2A2A2A;
+  --accent-olive:#6B8E23;
+}
+
+/* GLOBAL */
+*{margin:0; padding:0; box-sizing:border-box;}
+body{font-family:"Inter",sans-serif; background:var(--bg-main); color:var(--text-dark);}
+a{text-decoration:none; color:inherit;}
+h1,h2,h3{font-family:"Playfair Display",serif;}
+.page-content.blur{filter:blur(5px);}
+
+/* HEADER */
+header{
+  position:fixed; top:0; width:100%;
+  background:rgba(255,255,255,0.96);
+  z-index:1000; box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+.header-top{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16px 24px;
+}
+.logo{font-size:22px; letter-spacing:2px;}
+.cart-btn{position:relative; cursor:pointer;}
+.cart-btn span{
+  position:absolute; top:-6px; right:-8px;
+  background:var(--accent-olive); color:#fff;
+  font-size:10px; padding:2px 6px; border-radius:50%;
+}
+
+/* SPACER (fix header overlap) */
+.header-spacer{height:70px;}
+
+/* CATEGORY FILTER */
+.category-bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:20px 16px;
+  max-width:1200px; margin:auto;
+}
+.category-bar button{
+  padding:8px 18px;
+  border-radius:999px;
+  border:1px solid var(--accent-olive);
+  background:transparent;
+  color:var(--accent-olive);
+  cursor:pointer;
+  font-size:0.85rem;
+}
+.category-bar button.active,
+.category-bar button:hover{
+  background:var(--accent-olive);
+  color:#fff;
+}
+
+/* PRODUCTS */
+.section{
+  padding:30px 16px 60px;
+  max-width:1200px;
+  margin:auto;
+}
+.product-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+}
+.product-card{
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,0.05);
+}
+.product-card img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+}
+.product-info{padding:12px;}
+.product-info h3{font-size:0.95rem; margin-bottom:4px;}
+.product-info span{
+  color:var(--accent-olive);
+  font-weight:600;
+  font-size:0.85rem;
+}
+.product-info button{
+  width:100%;
+  margin-top:6px;
+  padding:8px;
+  border:none;
+  border-radius:999px;
+  background:var(--accent-olive);
+  color:#fff;
+  font-size:0.8rem;
+  cursor:pointer;
+}
+
+/* CART */
+.cart-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.35);
+  display:none; z-index:1100;
+}
+.cart-overlay.show{display:block;}
+.cart-drawer{
+  position:fixed; top:0; right:0;
+  width:360px; height:100%;
+  background:#fff; padding:20px;
+  box-shadow:-6px 0 20px rgba(0,0,0,0.1);
+  transform:translateX(100%);
+  transition:0.3s; z-index:1200;
+}
+.cart-drawer.open{transform:translateX(0);}
+.cart-close-btn{
+  position:absolute; top:16px; right:16px;
+  font-size:1.2rem;
+  background:none; border:none; cursor:pointer;
+}
+.cart-items{max-height:60vh; overflow:auto;}
+.cart-item{
+  background:#fafafa;
+  border-radius:14px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:70px 1fr;
+  gap:12px;
+  margin-bottom:14px;
+}
+.cart-item img{
+  width:70px; height:70px;
+  border-radius:10px;
+  object-fit:cover;
+}
+.qty-controls button{
+  width:26px; height:26px;
+  border:none; border-radius:50%;
+  cursor:pointer;
+}
+.item-total{
+  color:var(--accent-olive);
+  font-weight:600;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .product-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">MAISON</div>
+    <div class="cart-btn" onclick="toggleCart()">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span id="cartCount">0</span>
+    </div>
+  </div>
+</header>
+
+<div class="header-spacer"></div>
+
+<div class="page-content" id="pageContent">
+
+<!-- CATEGORY FILTER -->
+<div class="category-bar" id="categoryBar"></div>
+
+<!-- PRODUCTS -->
+<section class="section">
+  <div class="product-grid" id="productGrid"></div>
+</section>
+
+</div>
+
+<!-- CART -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <button class="cart-close-btn" onclick="closeCart()">×</button>
+  <h3>Your Cart</h3>
+  <div class="cart-items" id="cartItems"></div>
+  <div id="cartTotal"></div>
+  <button class="checkout-btn">Checkout</button>
+</div>
+
+<script>
+const API_BASE = 'https://maison-90o3.onrender.com';
+
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let allProducts = [];
+let activeCategory = 'All';
+
+/* CART */
+function saveCart(){
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+function updateCartCount(){
+  document.getElementById('cartCount').textContent =
+    cart.reduce((s,i)=>s+i.quantity,0);
+}
+function addToCart(p){
+  const existing = cart.find(i=>i._id===p._id);
+  existing ? existing.quantity++ : cart.push({...p, quantity:1});
+  saveCart(); updateCartCount(); renderCart();
+}
+function changeQty(id, d){
+  const i = cart.find(x=>x._id===id);
+  if(!i) return;
+  i.quantity+=d;
+  if(i.quantity<=0) cart = cart.filter(x=>x._id!==id);
+  saveCart(); updateCartCount(); renderCart();
+}
+function renderCart(){
+  const items = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  items.innerHTML=''; let total=0;
+  cart.forEach(i=>{
+    const t=i.price*i.quantity; total+=t;
+    items.innerHTML+=`
+      <div class="cart-item">
+        <img src="${i.mainImage}">
+        <div>
+          <strong>${i.name}</strong>
+          <div class="qty-controls">
+            <button onclick="changeQty('${i._id}',-1)">−</button>
+            <span>${i.quantity}</span>
+            <button onclick="changeQty('${i._id}',1)">+</button>
+          </div>
+          <div class="item-total">₦${t}</div>
+        </div>
+      </div>`;
+  });
+  totalEl.textContent=`Total: ₦${total}`;
+}
+function toggleCart(){
+  cartDrawer.classList.toggle('open');
+  cartOverlay.classList.toggle('show');
+  pageContent.classList.toggle('blur');
+  renderCart();
+}
+function closeCart(){
+  cartDrawer.classList.remove('open');
+  cartOverlay.classList.remove('show');
+  pageContent.classList.remove('blur');
+}
+cartOverlay.onclick = closeCart;
+
+/* PRODUCTS */
+async function fetchProducts(){
+  const res = await fetch(`${API_BASE}/api/products`);
+  allProducts = await res.json();
+  buildCategories();
+  renderProducts();
+}
+function buildCategories(){
+  const cats = ['All', ...new Set(allProducts.map(p=>p.category))];
+  categoryBar.innerHTML='';
+  cats.forEach(c=>{
+    const b=document.createElement('button');
+    b.textContent=c;
+    if(c===activeCategory) b.classList.add('active');
+    b.onclick=()=>{activeCategory=c; buildCategories(); renderProducts();};
+    categoryBar.appendChild(b);
+  });
+}
+function renderProducts(){
+  productGrid.innerHTML='';
+  allProducts
+    .filter(p=>activeCategory==='All'||p.category===activeCategory)
+    .forEach(p=>{
+      productGrid.innerHTML+=`
+        <div class="product-card">
+          <img src="${p.mainImage}">
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <span>₦${p.price}</span>
+            <button onclick='addToCart(${JSON.stringify(p)})'>
+              Add to Cart
+            </button>
+          </div>
+        </div>`;
+    });
+}
+
+/* INIT */
+updateCartCount();
+fetchProducts();
+</script>
+
+</body>
+</html>
