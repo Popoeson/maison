@@ -93,6 +93,70 @@ header{
 }
 
 /* ==========================
+   FEATURED CAROUSEL
+========================== */
+
+.featured-wrapper{
+  position:relative;
+  max-width:1200px;
+  margin:auto;
+  overflow:hidden;
+}
+
+.featured-track{
+  display:flex;
+  gap:20px;
+  scroll-behavior:smooth;
+  overflow-x:auto;
+  padding:20px 0;
+  scrollbar-width:none;
+}
+.featured-track::-webkit-scrollbar{display:none;}
+
+.featured-track .product-card{
+  min-width:220px;
+  flex-shrink:0;
+  transition:transform 0.4s ease, opacity 0.4s ease;
+  transform:scale(0.85);
+  opacity:0.6;
+}
+
+.featured-track .product-card.active{
+  transform:scale(1.05);
+  opacity:1;
+  z-index:2;
+}
+
+/* 5 cards visible on desktop */
+@media(min-width:1024px){
+  .featured-track .product-card{
+    min-width:calc(100% / 5 - 16px);
+  }
+}
+
+/* arrows */
+.carousel-btn{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:none;
+  background:var(--accent-olive);
+  color:#fff;
+  font-size:1.5rem;
+  cursor:pointer;
+  z-index:10;
+}
+.carousel-btn.left{left:-10px;}
+.carousel-btn.right{right:-10px;}
+
+.carousel-btn:hover{
+  opacity:0.85;
+}
+
+/* ==========================
    CART
 ========================== */
 .cart-overlay{
@@ -177,12 +241,18 @@ header{
    <a href="products.html" class="btn">Shop Now</a>
 </section>
 
-  <section class="section">
-    <h2>Featured Products</h2>
-    <div class="product-grid" id="productGrid"></div>
-  </section>
+<section class="section">
+  <h2>Featured Products</h2>
 
+  <div class="featured-wrapper">
+    <button class="carousel-btn left" id="prevBtn">‹</button>
 
+    <div class="featured-track" id="featuredTrack"></div>
+
+    <button class="carousel-btn right" id="nextBtn">›</button>
+  </div>
+</section>
+  
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-about">
