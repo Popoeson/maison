@@ -464,6 +464,29 @@ function renderProducts(){
       </div>`;
   });
 
+// ===============================
+// PRODUCT IMAGE PREVIEW MODAL
+// ===============================
+const previewModal = document.getElementById('imagePreviewModal');
+const previewImage = document.getElementById('previewImage');
+const closePreviewBtn = document.querySelector('.close-preview');
+const previewBackdrop = document.querySelector('.image-preview-backdrop');
+
+function openImagePreview(imageSrc, altText = '') {
+  previewImage.src = imageSrc;
+  previewImage.alt = altText;
+  previewModal.classList.add('active');
+}
+
+function closeImagePreview() {
+  previewModal.classList.remove('active');
+  previewImage.src = '';
+}
+
+// Close handlers
+closePreviewBtn.addEventListener('click', closeImagePreview);
+previewBackdrop.addEventListener('click', closeImagePreview);
+
   renderPagination(filtered.length);
 }
 
