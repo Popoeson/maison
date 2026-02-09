@@ -458,20 +458,23 @@ async function fetchHeroes(){
 }
 
 // ===============================
-// PRODUCTS
+// FEATURED PRODUCTS CAROUSEL
 // ===============================
-async function fetchProducts(){
-  try {
+let autoScrollInterval;
+
+async function fetchFeaturedProducts(){
+  try{
     const res = await fetch(`${API_BASE}/api/products`);
     const products = await res.json();
 
-    const grid = document.getElementById('productGrid');
-    if (!grid) return;
+    const featured = products.filter(p => p.featured === true);
+    const track = document.getElementById('featuredTrack');
+    if(!track) return;
 
-    grid.innerHTML = '';
+    track.innerHTML = '';
 
-    products.forEach(p => {
-      grid.innerHTML += `
+    featured.forEach(p=>{
+      track.innerHTML += `
         <div class="product-card">
           <img src="${p.mainImage}" alt="${p.name}">
           <div class="product-info">
@@ -485,8 +488,11 @@ async function fetchProducts(){
       `;
     });
 
-  } catch (err) {
-    console.error('Product fetch failed:', err);
+    activateCenterCard();
+    startAutoplay();
+
+  }catch(err){
+    console.error('Featured products fetch failed', err);
   }
 }
 
