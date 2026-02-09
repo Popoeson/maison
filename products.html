@@ -159,6 +159,44 @@ header{
 @media(max-width:768px){
   .product-grid{grid-template-columns:repeat(2,1fr);}
 }
+
+/* PAGINATION */
+.pagination{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:40px;
+  flex-wrap:wrap;
+}
+
+.pagination button{
+  min-width:38px;
+  height:38px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid var(--accent-olive);
+  background:#fff;
+  color:var(--accent-olive);
+  font-size:0.85rem;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.pagination button:hover{
+  background:var(--accent-olive);
+  color:#fff;
+}
+
+.pagination button.active{
+  background:var(--accent-olive);
+  color:#fff;
+  font-weight:600;
+}
+
+.pagination button:disabled{
+  opacity:0.4;
+  cursor:not-allowed;
+}
 </style>
 </head>
 
@@ -186,6 +224,7 @@ header{
   <div class="product-grid" id="productGrid"></div>
 </section>
 
+<div class="pagination" id="pagination"></div>
 </div>
 
 <!-- CART -->
@@ -201,37 +240,62 @@ header{
 <script>
 const API_BASE = 'https://maison-90o3.onrender.com';
 
+/* =========================
+   STATE
+========================= */
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let allProducts = [];
 let activeCategory = 'All';
 
-/* CART */
+let currentPage = 1;
+const ITEMS_PER_PAGE = 30;
+
+/* =========================
+   CART
+========================= */
 function saveCart(){
   localStorage.setItem('cart', JSON.stringify(cart));
 }
+
 function updateCartCount(){
   document.getElementById('cartCount').textContent =
     cart.reduce((s,i)=>s+i.quantity,0);
 }
+
 function addToCart(p){
   const existing = cart.find(i=>i._id===p._id);
   existing ? existing.quantity++ : cart.push({...p, quantity:1});
-  saveCart(); updateCartCount(); renderCart();
+  saveCart();
+  updateCartCount();
+  renderCart();
 }
-function changeQty(id, d){
-  const i = cart.find(x=>x._id===id);
-  if(!i) return;
-  i.quantity+=d;
-  if(i.quantity<=0) cart = cart.filter(x=>x._id!==id);
-  saveCart(); updateCartCount(); renderCart();
+
+function changeQty(id, delta){
+  const item = cart.find(i=>i._id===id);
+  if(!item) return;
+
+  item.quantity += delta;
+  if(item.quantity <= 0){
+    cart = cart.filter(i=>i._id !== id);
+  }
+
+  saveCart();
+  updateCartCount();
+  renderCart();
 }
+
 function renderCart(){
   const items = document.getElementById('cartItems');
   const totalEl = document.getElementById('cartTotal');
-  items.innerHTML=''; let total=0;
+
+  items.innerHTML = '';
+  let total = 0;
+
   cart.forEach(i=>{
-    const t=i.price*i.quantity; total+=t;
-    items.innerHTML+=`
+    const t = i.price * i.quantity;
+    total += t;
+
+    items.innerHTML += `
       <div class="cart-item">
         <img src="${i.mainImage}">
         <div>
@@ -243,64 +307,121 @@ function renderCart(){
           </div>
           <div class="item-total">₦${t}</div>
         </div>
-      </div>`;
+      </div>
+    `;
   });
-  totalEl.textContent=`Total: ₦${total}`;
+
+  totalEl.textContent = `Total: ₦${total}`;
 }
+
 function toggleCart(){
   cartDrawer.classList.toggle('open');
   cartOverlay.classList.toggle('show');
   pageContent.classList.toggle('blur');
   renderCart();
 }
+
 function closeCart(){
   cartDrawer.classList.remove('open');
   cartOverlay.classList.remove('show');
   pageContent.classList.remove('blur');
 }
+
 cartOverlay.onclick = closeCart;
 
-/* PRODUCTS */
+/* =========================
+   PRODUCTS
+========================= */
 async function fetchProducts(){
-  const res = await fetch(`${API_BASE}/api/products`);
-  allProducts = await res.json();
-  buildCategories();
-  renderProducts();
-}
-function buildCategories(){
-  const cats = ['All', ...new Set(allProducts.map(p=>p.category))];
-  categoryBar.innerHTML='';
-  cats.forEach(c=>{
-    const b=document.createElement('button');
-    b.textContent=c;
-    if(c===activeCategory) b.classList.add('active');
-    b.onclick=()=>{activeCategory=c; buildCategories(); renderProducts();};
-    categoryBar.appendChild(b);
-  });
-}
-function renderProducts(){
-  productGrid.innerHTML='';
-  allProducts
-    .filter(p=>activeCategory==='All'||p.category===activeCategory)
-    .forEach(p=>{
-      productGrid.innerHTML+=`
-        <div class="product-card">
-          <img src="${p.mainImage}">
-          <div class="product-info">
-            <h3>${p.name}</h3>
-            <span>₦${p.price}</span>
-            <button onclick='addToCart(${JSON.stringify(p)})'>
-              Add to Cart
-            </button>
-          </div>
-        </div>`;
-    });
+  try{
+    const res = await fetch(`${API_BASE}/api/products`);
+    allProducts = await res.json();
+    buildCategories();
+    renderProducts();
+  }catch(err){
+    console.error('Failed to fetch products', err);
+  }
 }
 
-/* INIT */
+function buildCategories(){
+  const cats = ['All', ...new Set(allProducts.map(p=>p.category))];
+  categoryBar.innerHTML = '';
+
+  cats.forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    if(cat === activeCategory) btn.classList.add('active');
+
+    btn.onclick = () => {
+      activeCategory = cat;
+      currentPage = 1;
+      buildCategories();
+      renderProducts();
+    };
+
+    categoryBar.appendChild(btn);
+  });
+}
+
+function getFilteredProducts(){
+  return allProducts.filter(p =>
+    activeCategory === 'All' || p.category === activeCategory
+  );
+}
+
+function renderProducts(){
+  const filtered = getFilteredProducts();
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  const pageItems = filtered.slice(start, end);
+
+  productGrid.innerHTML = '';
+
+  pageItems.forEach(p=>{
+    productGrid.innerHTML += `
+      <div class="product-card">
+        <img src="${p.mainImage}">
+        <div class="product-info">
+          <h3>${p.name}</h3>
+          <span>₦${p.price}</span>
+          <button onclick='addToCart(${JSON.stringify(p)})'>
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  renderPagination(filtered.length);
+}
+
+function renderPagination(totalItems){
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
+
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  if(totalPages <= 1) return;
+
+  for(let i = 1; i <= totalPages; i++){
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    if(i === currentPage) btn.classList.add('active');
+
+    btn.onclick = () => {
+      currentPage = i;
+      renderProducts();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    pagination.appendChild(btn);
+  }
+}
+
+/* =========================
+   INIT
+========================= */
 updateCartCount();
 fetchProducts();
 </script>
-
 </body>
 </html>
