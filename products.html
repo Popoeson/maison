@@ -282,7 +282,7 @@ let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let allProducts = [];
 let activeCategory = 'All';
 let currentPage = 1;
-const ITEMS_PER_PAGE = 30;
+const ITEMS_PER_PAGE = 4;
 
 /* CART */
 function saveCart(){localStorage.setItem('cart',JSON.stringify(cart));}
