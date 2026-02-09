@@ -612,7 +612,8 @@ function renderProducts(products){
 }
 
 /* ===================== CREATE / UPDATE PRODUCT ===================== */
-modalBtn.addEventListener("click", async ()=>{
+
+modalBtn.addEventListener("click", async () => {
   const name = document.getElementById("productName").value;
   const price = +document.getElementById("productPrice").value;
   const quantity = +document.getElementById("productQuantity").value;
@@ -621,8 +622,11 @@ modalBtn.addEventListener("click", async ()=>{
   const featured = document.getElementById("productFeatured").checked;
 
   const files = Array.from(document.querySelectorAll("#imageInputs input[type=file]"))
-                      .map(f=>f.files[0]).filter(Boolean);
-  if(!name || !price || !quantity || files.length===0){
+                      .map(f => f.files[0])
+                      .filter(Boolean);
+
+  // Only require images if we're creating a new product
+  if (!name || !price || !quantity || (!editProductId && files.length === 0)) {
     toast("Please fill all required fields", "error");
     return;
   }
@@ -634,26 +638,28 @@ modalBtn.addEventListener("click", async ()=>{
   formData.append("category", category);
   formData.append("description", description);
   formData.append("featured", featured);
-  files.forEach(f=> formData.append("images", f));
+
+  // Only append images if user selected new ones
+  files.forEach(f => formData.append("images", f));
 
   try {
     showLoading();
     let url = `${API_BASE}/api/products`;
     let method = 'POST';
-    if(editProductId){
+    if (editProductId) {
       url = `${API_BASE}/api/products/${editProductId}`;
       method = 'PUT';
     }
     const res = await fetch(url, { method, body: formData });
     const data = await res.json();
-    if(res.ok){
+    if (res.ok) {
       toast(editProductId ? "Product updated" : "Product created");
       closeModal();
       fetchProducts();
     } else {
       toast(data.message || "Error occurred", "error");
     }
-  } catch(err){
+  } catch (err) {
     toast("Error submitting product", "error");
     console.error(err);
   } finally {
