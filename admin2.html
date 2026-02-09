@@ -575,7 +575,7 @@ function previewImages(){
 async function fetchProducts(){
   try {
     showLoading();
-    const res = await fetch(`${API_BASE}/products`);
+    const res = await fetch(`${API_BASE}/api/products`);
     const data = await res.json();
     allProducts = data; // store all products for filtering
     renderProducts(data);
@@ -635,10 +635,10 @@ modalBtn.addEventListener("click", async ()=>{
 
   try {
     showLoading();
-    let url = `${API_BASE}/products`;
+    let url = `${API_BASE}/api/products`;
     let method = 'POST';
     if(editProductId){
-      url = `${API_BASE}/products/${editProductId}`;
+      url = `${API_BASE}/api/products/${editProductId}`;
       method = 'PUT';
     }
     const res = await fetch(url, { method, body: formData });
@@ -663,7 +663,7 @@ async function deleteProduct(id){
   if(!confirm("Are you sure you want to delete this product?")) return;
   try {
     showLoading();
-    const res = await fetch(`${API_BASE}/products/${id}`, { method:'DELETE' });
+    const res = await fetch(`${API_BASE}/api/products/${id}`, { method:'DELETE' });
     if(res.ok){
       toast("Product deleted");
       fetchProducts();
