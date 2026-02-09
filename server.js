@@ -49,9 +49,12 @@ const productSchema = new mongoose.Schema({
   otherImages: { type: [String], default: [] },  // extra images for single product page
   description: { type: String },
   quantity: { type: Number, default: 0 },
+  featured: { type: Boolean, default: false },   // new field for featured products
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
+
+module.exports = Product;
 
 // =====================
 // Hero Image Schema
