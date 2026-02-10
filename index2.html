@@ -567,11 +567,13 @@ function calculateCardWidth() {
   const firstCard = track.querySelector('.product-card');
   if (!firstCard) return;
 
-  if (isMobile()) {
-    cardWidth = track.offsetWidth;
-  } else {
-    cardWidth = firstCard.offsetWidth + 20; // desktop gap
-  }
+  const cardStyles = getComputedStyle(firstCard);
+  const trackStyles = getComputedStyle(track);
+
+  const cardWidthRaw = firstCard.offsetWidth;
+  const gap = parseFloat(trackStyles.columnGap || trackStyles.gap || 0);
+
+  cardWidth = cardWidthRaw + gap;
 }
 
 // ===============================
@@ -584,8 +586,12 @@ function activateCard(index) {
   cards.forEach(card => card.classList.remove('active'));
   cards[index].classList.add('active');
 
+  const card = cards[index];
+  const trackCenter = track.offsetWidth / 2;
+  const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+
   track.scrollTo({
-    left: index * cardWidth,
+    left: cardCenter - trackCenter,
     behavior: 'smooth'
   });
 
