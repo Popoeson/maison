@@ -479,6 +479,10 @@ let autoScrollInterval;
 let currentIndex = 0;
 let cardWidth = 0;
 
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
 async function fetchFeaturedProducts() {
   try {
     const res = await fetch(`${API_BASE}/api/products`);
@@ -505,16 +509,34 @@ async function fetchFeaturedProducts() {
       `;
     });
 
-    // Wait for DOM render
     requestAnimationFrame(() => {
-      const firstCard = track.querySelector('.product-card');
-      cardWidth = firstCard.offsetWidth + 20; // 20 = gap
+      calculateCardWidth();
       activateCard(0);
       startAutoplay();
     });
 
+    window.addEventListener('resize', () => {
+      calculateCardWidth();
+      activateCard(currentIndex);
+    });
+
   } catch (err) {
     console.error('Featured products fetch failed', err);
+  }
+}
+
+// ===============================
+// WIDTH CALCULATION (KEY CHANGE)
+// ===============================
+function calculateCardWidth() {
+  const track = document.getElementById('featuredTrack');
+  const firstCard = track.querySelector('.product-card');
+  if (!firstCard) return;
+
+  if (isMobile()) {
+    cardWidth = track.offsetWidth;
+  } else {
+    cardWidth = firstCard.offsetWidth + 20; // desktop gap
   }
 }
 
@@ -537,7 +559,7 @@ function activateCard(index) {
 }
 
 // ===============================
-// AUTOPLAY LOGIC (ONE STEP ONLY)
+// AUTOPLAY LOGIC
 // ===============================
 function startAutoplay() {
   stopAutoplay();
@@ -547,12 +569,7 @@ function startAutoplay() {
 
   autoScrollInterval = setInterval(() => {
     let nextIndex = currentIndex + 1;
-
-    // Loop back to start
-    if (nextIndex >= cardsCount) {
-      nextIndex = 0;
-    }
-
+    if (nextIndex >= cardsCount) nextIndex = 0;
     activateCard(nextIndex);
   }, 3500);
 }
@@ -571,21 +588,13 @@ track?.addEventListener('mouseleave', startAutoplay);
 document.getElementById('prevBtn')?.addEventListener('click', () => {
   const track = document.getElementById('featuredTrack');
   const cardsCount = track.children.length;
-
-  let prevIndex = currentIndex - 1;
-  if (prevIndex < 0) prevIndex = cardsCount - 1;
-
-  activateCard(prevIndex);
+  activateCard((currentIndex - 1 + cardsCount) % cardsCount);
 });
 
 document.getElementById('nextBtn')?.addEventListener('click', () => {
   const track = document.getElementById('featuredTrack');
   const cardsCount = track.children.length;
-
-  let nextIndex = currentIndex + 1;
-  if (nextIndex >= cardsCount) nextIndex = 0;
-
-  activateCard(nextIndex);
+  activateCard((currentIndex + 1) % cardsCount);
 });
 
 // ===============================
