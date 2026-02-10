@@ -507,22 +507,23 @@ async function fetchProducts() {
 }
 
 // ===============================
-// FEATURED PRODUCTS CAROUSEL
+// FEATURED PRODUCTS CAROUSEL FIXED
 // ===============================
 let autoScrollInterval;
 let currentIndex = 0;
 let cardWidth = 0;
-let isUserInteracting = false; // ✅ FIX
+let isUserInteracting = false;
 
+// MOBILE CHECK
 function isMobile() {
   return window.innerWidth <= 768;
 }
 
+// FETCH FEATURED PRODUCTS
 async function fetchFeaturedProducts() {
   try {
     const res = await fetch(`${API_BASE}/api/products`);
     const products = await res.json();
-
     const featured = products.filter(p => p.featured === true);
     const track = document.getElementById('featuredTrack');
     if (!track || featured.length === 0) return;
@@ -536,9 +537,7 @@ async function fetchFeaturedProducts() {
           <div class="product-info">
             <h3>${p.name}</h3>
             <span>₦${p.price}</span>
-            <button onclick='addToCart(${JSON.stringify(p)})'>
-              Add to Cart
-            </button>
+            <button onclick='addToCart(${JSON.stringify(p)})'>Add to Cart</button>
           </div>
         </div>
       `;
@@ -548,7 +547,7 @@ async function fetchFeaturedProducts() {
       calculateCardWidth();
       activateCard(0);
       startAutoplay();
-      enableTouchScroll(); // ✅ FIX
+      enableTouchScroll(); // ✅ fixed drag/swipe
     });
 
     window.addEventListener('resize', () => {
@@ -561,24 +560,18 @@ async function fetchFeaturedProducts() {
   }
 }
 
-// ===============================
-// WIDTH CALCULATION
-// ===============================
+// CALCULATE CARD WIDTH
 function calculateCardWidth() {
   const track = document.getElementById('featuredTrack');
   const firstCard = track.querySelector('.product-card');
   if (!firstCard) return;
-
   const trackStyles = getComputedStyle(track);
   const gap = parseFloat(trackStyles.gap || 0);
-
   cardWidth = firstCard.offsetWidth + gap;
 }
 
-// ===============================
-// ACTIVE CARD LOGIC
-// ===============================
-function activateCard(index) {
+// ACTIVATE CARD
+function activateCard(index, smooth = true) {
   const track = document.getElementById('featuredTrack');
   const cards = [...track.children];
   if (!cards[index]) return;
@@ -592,24 +585,20 @@ function activateCard(index) {
 
   track.scrollTo({
     left: cardCenter - trackCenter,
-    behavior: 'smooth'
+    behavior: smooth ? 'smooth' : 'auto'
   });
 
   currentIndex = index;
 }
 
-// ===============================
-// AUTOPLAY LOGIC
-// ===============================
+// AUTOPLAY
 function startAutoplay() {
   stopAutoplay();
-
   const track = document.getElementById('featuredTrack');
   const cardsCount = track.children.length;
 
   autoScrollInterval = setInterval(() => {
     if (isUserInteracting) return;
-
     let nextIndex = currentIndex + 1;
     if (nextIndex >= cardsCount) nextIndex = 0;
     activateCard(nextIndex);
@@ -620,35 +609,46 @@ function stopAutoplay() {
   if (autoScrollInterval) clearInterval(autoScrollInterval);
 }
 
-const track = document.getElementById('featuredTrack');
-track?.addEventListener('mouseenter', stopAutoplay);
-track?.addEventListener('mouseleave', startAutoplay);
-
-// ===============================
-// TOUCH / SCROLL DETECTION
-// ===============================
+// TOUCH / DRAG SCROLL
 function enableTouchScroll() {
   const track = document.getElementById('featuredTrack');
   if (!track) return;
 
-  let scrollTimeout;
+  let startX, scrollStart;
 
-  track.addEventListener('scroll', () => {
+  // pointer/touch down
+  track.addEventListener('pointerdown', (e) => {
     isUserInteracting = true;
     stopAutoplay();
+    startX = e.pageX || e.touches?.[0]?.pageX;
+    scrollStart = track.scrollLeft;
+    track.setPointerCapture(e.pointerId);
+  });
 
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      snapToClosestCard();
-      isUserInteracting = false;
-      startAutoplay();
-    }, 150);
+  // pointer/touch move
+  track.addEventListener('pointermove', (e) => {
+    if (!isUserInteracting) return;
+    const x = e.pageX || e.touches?.[0]?.pageX;
+    const delta = startX - x;
+    track.scrollLeft = scrollStart + delta;
+  });
+
+  // pointer/touch up
+  track.addEventListener('pointerup', (e) => {
+    snapToClosestCard();
+    isUserInteracting = false;
+    startAutoplay();
+  });
+
+  // pointer cancel (user stops drag outside)
+  track.addEventListener('pointercancel', () => {
+    snapToClosestCard();
+    isUserInteracting = false;
+    startAutoplay();
   });
 }
 
-// ===============================
 // SNAP TO NEAREST CARD
-// ===============================
 function snapToClosestCard() {
   const track = document.getElementById('featuredTrack');
   const cards = [...track.children];
@@ -660,7 +660,6 @@ function snapToClosestCard() {
   cards.forEach((card, index) => {
     const cardCenter = card.offsetLeft + card.offsetWidth / 2;
     const distance = Math.abs(trackCenter - cardCenter);
-
     if (distance < closestDistance) {
       closestDistance = distance;
       closestIndex = index;
@@ -670,9 +669,7 @@ function snapToClosestCard() {
   activateCard(closestIndex);
 }
 
-// ===============================
-// ARROW BUTTON LOGIC
-// ===============================
+// ARROW BUTTONS
 document.getElementById('prevBtn')?.addEventListener('click', () => {
   const track = document.getElementById('featuredTrack');
   const cardsCount = track.children.length;
