@@ -500,7 +500,7 @@ async function fetchHeroes(){
    const res = await fetch(`${API_BASE}/api/products`);
     const products = await res.json();
 
-   console.log("Products:", products);
+  // console.log("Products:", products);
     // render products here
   } catch (err) {
    console.error("Failed to fetch products:", err);
