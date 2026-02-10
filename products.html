@@ -340,14 +340,22 @@ header{
     <img id="previewImage" src="" alt="Product preview">
   </div>
 </div>
+
 <script>
 const API_BASE = 'https://maison-90o3.onrender.com';
 
+/* ===============================
+   GLOBAL ELEMENTS & STATE
+================================ */
 const cartDrawer = document.getElementById('cartDrawer');
 const cartOverlay = document.getElementById('cartOverlay');
 const pageContent = document.getElementById('pageContent');
 const productGrid = document.getElementById('productGrid');
 const categoryBar = document.getElementById('categoryBar');
+const pagination = document.getElementById('pagination');
+const cartCount = document.getElementById('cartCount');
+const cartItems = document.getElementById('cartItems');
+const cartTotal = document.getElementById('cartTotal');
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let allProducts = [];
@@ -355,123 +363,9 @@ let activeCategory = 'All';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 4;
 
-/* CART */
-function saveCart(){localStorage.setItem('cart',JSON.stringify(cart));}
-function updateCartCount(){
-  cartCount.textContent = cart.reduce((s,i)=>s+i.quantity,0);
-}
-
-function addToCart(product){
-  const existing = cart.find(i=>i._id===product._id);
-  existing ? existing.quantity++ : cart.push({...product,quantity:1});
-  saveCart(); updateCartCount(); renderCart();
-}
-
-function addToCartById(id){
-  const product = allProducts.find(p=>p._id===id);
-  if(product) addToCart(product);
-}
-
-function changeQty(id,delta){
-  const item = cart.find(i=>i._id===id);
-  if(!item) return;
-  item.quantity += delta;
-  if(item.quantity<=0) cart = cart.filter(i=>i._id!==id);
-  saveCart(); updateCartCount(); renderCart();
-}
-
-function renderCart(){
-  cartItems.innerHTML='';
-  let total=0;
-  cart.forEach(i=>{
-    const t=i.price*i.quantity;
-    total+=t;
-    cartItems.innerHTML+=`
-       
-      <div class="cart-item">
-        <img src="${i.mainImage}">
-        <div>
-          <strong>${i.name}</strong>
-          <div class="qty-controls">
-            <button onclick="changeQty('${i._id}',-1)">−</button>
-            <span>${i.quantity}</span>
-            <button onclick="changeQty('${i._id}',1)">+</button>
-          </div>
-          <div class="item-total">₦${t.toLocaleString()}</div>
-        </div>
-      </div>`;
-  });
-  cartTotal.textContent=`Total: ₦${total.toLocaleString()}`;
-}
-
-function toggleCart(){
-  cartDrawer.classList.toggle('open');
-  cartOverlay.classList.toggle('show');
-  pageContent.classList.toggle('blur');
-  renderCart();
-}
-function closeCart(){
-  cartDrawer.classList.remove('open');
-  cartOverlay.classList.remove('show');
-  pageContent.classList.remove('blur');
-}
-cartOverlay.onclick=closeCart;
-
-/* PRODUCTS */
-async function fetchProducts(){
-  const res = await fetch(`${API_BASE}/api/products`);
-  allProducts = await res.json();
-  buildCategories();
-  renderProducts();
-}
-
-function buildCategories(){
-  const cats=['All',...new Set(allProducts.map(p=>p.category))];
-  categoryBar.innerHTML='';
-  cats.forEach(cat=>{
-    const btn=document.createElement('button');
-    btn.textContent=cat;
-    if(cat===activeCategory) btn.classList.add('active');
-    btn.onclick=()=>{activeCategory=cat;currentPage=1;buildCategories();renderProducts();};
-    categoryBar.appendChild(btn);
-  });
-}
-
-function getFilteredProducts(){
-  return allProducts.filter(p=>activeCategory==='All'||p.category===activeCategory);
-}
-
-function renderProducts(){
-  const filtered=getFilteredProducts();
-  const start=(currentPage-1)*ITEMS_PER_PAGE;
-  const pageItems=filtered.slice(start,start+ITEMS_PER_PAGE);
-
-  productGrid.innerHTML='';
-  if(!pageItems.length){
-    productGrid.innerHTML='<p>No products found.</p>';
-    pagination.innerHTML='';
-    return;
-  }
-
-  pageItems.forEach(p=>{
-    productGrid.innerHTML+=`
-      <div class="product-card"
-     onclick="openImagePreview('${p.mainImage}', '${p.name}')">
-        <img src="${p.mainImage}">
-        <div class="product-info">
-          <h3>${p.name}</h3>
-          <span>₦${Number(p.price).toLocaleString()}</span>
-       <button onclick='event.stopPropagation(); addToCart(${JSON.stringify(p)})'>
-  Add to Cart
-</button>
-         
-        </div>
-      </div>`;
-  });
-
-// ===============================
-// PRODUCT IMAGE PREVIEW MODAL
-// ===============================
+/* ===============================
+   PRODUCT IMAGE PREVIEW MODAL
+================================ */
 const previewModal = document.getElementById('imagePreviewModal');
 const previewImage = document.getElementById('previewImage');
 const closePreviewBtn = document.querySelector('.close-preview');
@@ -488,26 +382,166 @@ function closeImagePreview() {
   previewImage.src = '';
 }
 
-// Close handlers
 closePreviewBtn.addEventListener('click', closeImagePreview);
 previewBackdrop.addEventListener('click', closeImagePreview);
+
+/* ===============================
+   CART LOGIC
+================================ */
+function saveCart() {
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function updateCartCount() {
+  cartCount.textContent = cart.reduce((sum, i) => sum + i.quantity, 0);
+}
+
+function addToCart(product) {
+  const existing = cart.find(i => i._id === product._id);
+  existing ? existing.quantity++ : cart.push({ ...product, quantity: 1 });
+  saveCart();
+  updateCartCount();
+  renderCart();
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i._id === id);
+  if (!item) return;
+  item.quantity += delta;
+  if (item.quantity <= 0) cart = cart.filter(i => i._id !== id);
+  saveCart();
+  updateCartCount();
+  renderCart();
+}
+
+function renderCart() {
+  cartItems.innerHTML = '';
+  let total = 0;
+
+  cart.forEach(i => {
+    const t = i.price * i.quantity;
+    total += t;
+    cartItems.innerHTML += `
+      <div class="cart-item">
+        <img src="${i.mainImage}">
+        <div>
+          <strong>${i.name}</strong>
+          <div class="qty-controls">
+            <button onclick="changeQty('${i._id}',-1)">−</button>
+            <span>${i.quantity}</span>
+            <button onclick="changeQty('${i._id}',1)">+</button>
+          </div>
+          <div class="item-total">₦${t.toLocaleString()}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  cartTotal.textContent = `Total: ₦${total.toLocaleString()}`;
+}
+
+function toggleCart() {
+  cartDrawer.classList.toggle('open');
+  cartOverlay.classList.toggle('show');
+  pageContent.classList.toggle('blur');
+  renderCart();
+}
+
+function closeCart() {
+  cartDrawer.classList.remove('open');
+  cartOverlay.classList.remove('show');
+  pageContent.classList.remove('blur');
+}
+
+cartOverlay.onclick = closeCart;
+
+/* ===============================
+   PRODUCTS LOGIC
+================================ */
+async function fetchProducts() {
+  const res = await fetch(`${API_BASE}/api/products`);
+  allProducts = await res.json();
+  buildCategories();
+  renderProducts();
+}
+
+function buildCategories() {
+  const cats = ['All', ...new Set(allProducts.map(p => p.category))];
+  categoryBar.innerHTML = '';
+
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    if (cat === activeCategory) btn.classList.add('active');
+    btn.onclick = () => {
+      activeCategory = cat;
+      currentPage = 1;
+      buildCategories();
+      renderProducts();
+    };
+    categoryBar.appendChild(btn);
+  });
+}
+
+function getFilteredProducts() {
+  return allProducts.filter(
+    p => activeCategory === 'All' || p.category === activeCategory
+  );
+}
+
+function renderProducts() {
+  const filtered = getFilteredProducts();
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageItems = filtered.slice(start, start + ITEMS_PER_PAGE);
+
+  productGrid.innerHTML = '';
+
+  if (!pageItems.length) {
+    productGrid.innerHTML = '<p>No products found.</p>';
+    pagination.innerHTML = '';
+    return;
+  }
+
+  pageItems.forEach(p => {
+    productGrid.innerHTML += `
+      <div class="product-card"
+           onclick="openImagePreview('${p.mainImage}', '${p.name}')">
+        <img src="${p.mainImage}">
+        <div class="product-info">
+          <h3>${p.name}</h3>
+          <span>₦${Number(p.price).toLocaleString()}</span>
+          <button onclick="event.stopPropagation(); addToCart(${JSON.stringify(p)})">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    `;
+  });
 
   renderPagination(filtered.length);
 }
 
-function renderPagination(total){
-  pagination.innerHTML='';
-  const pages=Math.ceil(total/ITEMS_PER_PAGE);
-  if(pages<=1) return;
-  for(let i=1;i<=pages;i++){
-    const b=document.createElement('button');
-    b.textContent=i;
-    if(i===currentPage) b.classList.add('active');
-    b.onclick=()=>{currentPage=i;renderProducts();window.scrollTo({top:0,behavior:'smooth'});}
+function renderPagination(total) {
+  pagination.innerHTML = '';
+  const pages = Math.ceil(total / ITEMS_PER_PAGE);
+  if (pages <= 1) return;
+
+  for (let i = 1; i <= pages; i++) {
+    const b = document.createElement('button');
+    b.textContent = i;
+    if (i === currentPage) b.classList.add('active');
+    b.onclick = () => {
+      currentPage = i;
+      renderProducts();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
     pagination.appendChild(b);
   }
 }
 
+/* ===============================
+   INIT
+================================ */
 updateCartCount();
 fetchProducts();
 </script>
