@@ -623,6 +623,52 @@ track?.addEventListener('mouseenter', stopAutoplay);
 track?.addEventListener('mouseleave', startAutoplay);
 
 // ===============================
+// TOUCH / SCROLL DETECTION
+// ===============================
+function enableTouchScroll() {
+  const track = document.getElementById('featuredTrack');
+  if (!track) return;
+
+  let scrollTimeout;
+
+  track.addEventListener('scroll', () => {
+    isUserInteracting = true;
+    stopAutoplay();
+
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      snapToClosestCard();
+      isUserInteracting = false;
+      startAutoplay();
+    }, 150);
+  });
+}
+
+// ===============================
+// SNAP TO NEAREST CARD
+// ===============================
+function snapToClosestCard() {
+  const track = document.getElementById('featuredTrack');
+  const cards = [...track.children];
+  const trackCenter = track.scrollLeft + track.offsetWidth / 2;
+
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+
+  cards.forEach((card, index) => {
+    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+    const distance = Math.abs(trackCenter - cardCenter);
+
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+
+  activateCard(closestIndex);
+}
+
+// ===============================
 // ARROW BUTTON LOGIC
 // ===============================
 document.getElementById('prevBtn')?.addEventListener('click', () => {
