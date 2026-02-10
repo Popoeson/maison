@@ -128,13 +128,26 @@ header{
 }
 
 @media (max-width: 768px) {
-  #featuredTrack {
-    overflow: hidden;
+
+  .featured-wrapper {
+    padding: 0 16px;
   }
 
-  #featuredTrack .product-card {
-    min-width: 100%;
-    margin-right: 0;
+  .featured-track {
+    overflow: hidden;
+    padding: 20px 0;
+  }
+
+  .featured-track .product-card {
+    min-width: 85%;
+    margin: 0 auto;
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+
+  .featured-track .product-card.active {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
