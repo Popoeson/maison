@@ -512,6 +512,7 @@ async function fetchProducts() {
 let autoScrollInterval;
 let currentIndex = 0;
 let cardWidth = 0;
+let isUserInteracting = false; // ✅ FIX
 
 function isMobile() {
   return window.innerWidth <= 768;
@@ -547,6 +548,7 @@ async function fetchFeaturedProducts() {
       calculateCardWidth();
       activateCard(0);
       startAutoplay();
+      enableTouchScroll(); // ✅ FIX
     });
 
     window.addEventListener('resize', () => {
@@ -560,20 +562,17 @@ async function fetchFeaturedProducts() {
 }
 
 // ===============================
-// WIDTH CALCULATION (KEY CHANGE)
+// WIDTH CALCULATION
 // ===============================
 function calculateCardWidth() {
   const track = document.getElementById('featuredTrack');
   const firstCard = track.querySelector('.product-card');
   if (!firstCard) return;
 
-  const cardStyles = getComputedStyle(firstCard);
   const trackStyles = getComputedStyle(track);
+  const gap = parseFloat(trackStyles.gap || 0);
 
-  const cardWidthRaw = firstCard.offsetWidth;
-  const gap = parseFloat(trackStyles.columnGap || trackStyles.gap || 0);
-
-  cardWidth = cardWidthRaw + gap;
+  cardWidth = firstCard.offsetWidth + gap;
 }
 
 // ===============================
@@ -582,6 +581,7 @@ function calculateCardWidth() {
 function activateCard(index) {
   const track = document.getElementById('featuredTrack');
   const cards = [...track.children];
+  if (!cards[index]) return;
 
   cards.forEach(card => card.classList.remove('active'));
   cards[index].classList.add('active');
@@ -608,6 +608,8 @@ function startAutoplay() {
   const cardsCount = track.children.length;
 
   autoScrollInterval = setInterval(() => {
+    if (isUserInteracting) return;
+
     let nextIndex = currentIndex + 1;
     if (nextIndex >= cardsCount) nextIndex = 0;
     activateCard(nextIndex);
