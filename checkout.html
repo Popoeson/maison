@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Checkout | MAISON</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<style>
+:root{
+  --bg-main:#F5F0E1;
+  --text-dark:#2A2A2A;
+  --accent-olive:#6B8E23;
+}
+
+/* GLOBAL */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--bg-main);
+  color:var(--text-dark);
+}
+h1,h2,h3{font-family:"Playfair Display",serif;}
+a{text-decoration:none;color:inherit;}
+
+/* HEADER */
+header{
+  position:fixed;
+  top:0;
+  width:100%;
+  background:rgba(255,255,255,0.96);
+  z-index:1000;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+.header-top{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:18px 24px;
+}
+.logo{
+  font-size:22px;
+  letter-spacing:2px;
+}
+
+/* PAGE */
+.checkout-wrapper{
+  max-width:700px;
+  margin:120px auto 60px;
+  padding:0 20px;
+}
+
+.checkout-card{
+  background:#fff;
+  padding:32px;
+  border-radius:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.06);
+}
+
+.checkout-card h2{
+  text-align:center;
+  margin-bottom:28px;
+  font-size:1.6rem;
+}
+
+/* FORM */
+.form-group{
+  margin-bottom:16px;
+}
+
+.form-group label{
+  display:block;
+  font-size:0.85rem;
+  margin-bottom:6px;
+  font-weight:500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:0.9rem;
+  outline:none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+  border-color:var(--accent-olive);
+}
+
+/* TOTAL */
+.order-summary{
+  margin-top:20px;
+  padding:16px;
+  background:#fafafa;
+  border-radius:12px;
+  font-size:0.9rem;
+}
+
+.order-summary div{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+.order-summary strong{
+  color:var(--accent-olive);
+  font-size:1rem;
+}
+
+/* BUTTON */
+.checkout-btn{
+  width:100%;
+  margin-top:20px;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:var(--accent-olive);
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+  font-size:0.95rem;
+  transition:0.3s;
+}
+.checkout-btn:hover{opacity:0.9;}
+
+/* SUCCESS */
+.success-box{
+  text-align:center;
+  padding:30px;
+  display:none;
+}
+.success-box h3{
+  margin-bottom:12px;
+}
+.order-id{
+  font-weight:600;
+  color:var(--accent-olive);
+  margin:10px 0;
+}
+.whatsapp-btn{
+  margin-top:16px;
+  padding:12px 24px;
+  border-radius:999px;
+  border:none;
+  background:#25D366;
+  color:#fff;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">MAISON</div>
+  </div>
+</header>
+
+<div class="checkout-wrapper">
+
+  <div class="checkout-card" id="checkoutCard">
+    <h2>Checkout</h2>
+
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="name" required>
+    </div>
+
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="text" id="phone" required>
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" required>
+    </div>
+
+    <div class="form-group">
+      <label>Address</label>
+      <textarea id="address" rows="2"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Nearest Bus Stop</label>
+      <input type="text" id="busstop">
+    </div>
+
+    <div class="form-group">
+      <label>Mode of Delivery</label>
+      <select id="deliveryMode">
+        <option value="pickup">Store Pickup (Free)</option>
+        <option value="door">Door Delivery (+ ₦1000)</option>
+      </select>
+    </div>
+
+    <div class="order-summary">
+      <div><span>Subtotal</span><span id="subtotal">₦0</span></div>
+      <div><span>Delivery</span><span id="deliveryFee">₦0</span></div>
+      <div><strong>Total</strong><strong id="total">₦0</strong></div>
+    </div>
+
+    <button class="checkout-btn" onclick="payNow()">Proceed to Payment</button>
+  </div>
+
+  <div class="success-box" id="successBox">
+    <h3>Payment Successful 🎉</h3>
+    <p>Thank you for shopping with MAISON.</p>
+    <div class="order-id" id="orderIdDisplay"></div>
+    <button class="whatsapp-btn" onclick="sendToWhatsApp()">Send Order to WhatsApp</button>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = "https://maison-90o3.onrender.com";
+const DELIVERY_FEE = 1000;
+const ADMIN_WHATSAPP = "2348123456789"; // replace with real number
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let subtotal = 0;
+let total = 0;
+let generatedOrderId = "";
+
+/* CALCULATE TOTAL */
+function calculateTotals(){
+  subtotal = cart.reduce((sum,item)=>sum + item.price * item.quantity,0);
+  let delivery = document.getElementById("deliveryMode").value === "door" ? DELIVERY_FEE : 0;
+  total = subtotal + delivery;
+
+  document.getElementById("subtotal").innerText = "₦" + subtotal.toLocaleString();
+  document.getElementById("deliveryFee").innerText = "₦" + delivery.toLocaleString();
+  document.getElementById("total").innerText = "₦" + total.toLocaleString();
+}
+
+document.getElementById("deliveryMode").addEventListener("change", calculateTotals);
+calculateTotals();
+
+/* GENERATE ORDER ID */
+function generateOrderId(){
+  return "MAISON-" + Math.random().toString(36).substring(2,8).toUpperCase();
+}
+
+/* PAYSTACK */
+async function payNow(){
+
+  const email = document.getElementById("email").value;
+  const name = document.getElementById("name").value;
+
+  generatedOrderId = generateOrderId();
+
+  const response = await fetch(`${API_BASE}/api/paystack/initialize`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      email,
+      amount: total * 100,
+      metadata:{
+        orderId: generatedOrderId,
+        name
+      }
+    })
+  });
+
+  const data = await response.json();
+
+  const handler = PaystackPop.setup({
+    key: data.publicKey,
+    email: email,
+    amount: total * 100,
+    ref: data.reference,
+    callback: function(response){
+      verifyPayment(response.reference);
+    }
+  });
+
+  handler.openIframe();
+}
+
+/* VERIFY */
+async function verifyPayment(reference){
+  const response = await fetch(`${API_BASE}/api/paystack/verify/${reference}`);
+  const data = await response.json();
+
+  if(data.status === "success"){
+
+    localStorage.removeItem("cart");
+
+    document.getElementById("checkoutCard").style.display="none";
+    document.getElementById("successBox").style.display="block";
+    document.getElementById("orderIdDisplay").innerText = "Order ID: " + generatedOrderId;
+  }
+}
+
+/* WHATSAPP */
+function sendToWhatsApp(){
+
+  let message = `NEW MAISON ORDER\n\n`;
+  message += `Order ID: ${generatedOrderId}\n`;
+  message += `Name: ${document.getElementById("name").value}\n`;
+  message += `Phone: ${document.getElementById("phone").value}\n`;
+  message += `Email: ${document.getElementById("email").value}\n\n`;
+
+  cart.forEach(item=>{
+    message += `${item.name} x${item.quantity} - ₦${item.price}\n`;
+    message += `Image: ${item.image}\n\n`;
+  });
+
+  message += `Total: ₦${total.toLocaleString()}`;
+
+  const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
+  window.open(url,"_blank");
+}
+</script>
+
+</body>
+</html>
