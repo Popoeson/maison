@@ -8,6 +8,7 @@ const cors = require('cors');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
+const axios = require('axios');
 
 const app = express();
 const corsOptions = {
@@ -65,6 +66,27 @@ const heroImageSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const HeroImage = mongoose.model('HeroImage', heroImageSchema);
+
+// =====================
+// Order Schema
+// =====================
+const orderSchema = new mongoose.Schema({
+  orderId: { type: String, required: true, unique: true },
+  reference: { type: String, required: true },
+  customer: {
+    name: String,
+    email: String,
+    phone: String,
+    address: String,
+    nearestBustop: String,
+    deliveryMode: String
+  },
+  items: Array,
+  amount: Number,
+  status: { type: String, default: "paid" }
+}, { timestamps: true });
+
+const Order = mongoose.model("Order", orderSchema);
 
 // =====================
 // Multer Config
@@ -248,6 +270,107 @@ app.delete('/api/hero-images/:id', async (req, res) => {
     res.json({ message: 'Hero image deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// =====================
+// PAYSTACK INTEGRATION
+// =====================
+
+// ---- Initialize Payment ----
+app.post('/api/paystack/initialize', async (req, res) => {
+  try {
+    const { email, amount, metadata } = req.body;
+
+    if (!email || !amount) {
+      return res.status(400).json({ error: "Email and amount are required" });
+    }
+
+    const response = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        email,
+        amount,
+        metadata
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    res.json({
+      authorization_url: response.data.data.authorization_url,
+      reference: response.data.data.reference,
+      publicKey: process.env.PAYSTACK_PUBLIC_KEY
+    });
+
+  } catch (error) {
+    console.error("Paystack Initialize Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Payment initialization failed" });
+  }
+});
+
+// ---- Verify Payment ----
+app.get('/api/paystack/verify/:reference', async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+        }
+      }
+    );
+
+    const data = response.data.data;
+
+    if (data.status === "success") {
+
+      // Generate MAISON Order ID
+      const orderId = `MAISON-${Date.now()}`;
+
+      // Extract metadata sent during initialize
+      const metadata = data.metadata || {};
+
+      const newOrder = new Order({
+        orderId,
+        reference,
+        customer: {
+          name: metadata.name,
+          email: metadata.email,
+          phone: metadata.phone,
+          address: metadata.address,
+          nearestBustop: metadata.nearestBustop,
+          deliveryMode: metadata.deliveryMode
+        },
+        items: metadata.items || [],
+        amount: data.amount / 100,
+        status: "paid"
+      });
+
+      await newOrder.save();
+
+      return res.json({
+        status: "success",
+        orderId,
+        message: "Payment verified and order created"
+      });
+
+    } else {
+      return res.status(400).json({
+        status: "failed",
+        message: "Payment not successful"
+      });
+    }
+
+  } catch (error) {
+    console.error("Paystack Verify Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Payment verification failed" });
   }
 });
 
