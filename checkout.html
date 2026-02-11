@@ -252,7 +252,7 @@ header{
     <p>Thank you for shopping with MAISON.</p>
     <div class="order-id" id="orderIdDisplay"></div>
     <button class="whatsapp-btn" onclick="sendToWhatsApp()">Send Order to WhatsApp</button>
-    <button class="home-btn" onclick="window.location.href='index.html'">Back to Home</button>
+    <button class="home-btn" onclick="attemptLeave()">Back to Home</button>
   </div>
 
 </div>
@@ -287,7 +287,6 @@ function calculateTotals(){
   document.getElementById("deliveryFee").innerText = "₦" + delivery.toLocaleString();
   document.getElementById("total").innerText = "₦" + total.toLocaleString();
 }
-
 document.getElementById("deliveryMode").addEventListener("change", calculateTotals);
 calculateTotals();
 
@@ -337,6 +336,11 @@ async function verifyPayment(reference){
     document.getElementById("checkoutCard").style.display="none";
     document.getElementById("successBox").style.display="block";
     document.getElementById("orderIdDisplay").innerText = "Order ID: " + generatedOrderId;
+    localStorage.setItem("unsentOrderReminder", JSON.stringify({
+      orderId: generatedOrderId,
+      total: total,
+      timestamp: Date.now()
+    }));
   }
 }
 
@@ -362,31 +366,9 @@ function sendToWhatsApp(){
   localStorage.removeItem("unsentOrderReminder");
 }
 
-/* EXIT PROMPT */
-window.addEventListener("beforeunload", function(e){
-  if(!orderSentToWhatsApp){
-    e.preventDefault();
-    // Chrome requires returnValue to be set
-    e.returnValue = "";
-    localStorage.setItem("unsentOrderReminder", JSON.stringify({
-      orderId: generatedOrderId,
-      total: total,
-      timestamp: Date.now()
-    }));
-  }
-});
-
-window.addEventListener("unload", function(){
-  if(!orderSentToWhatsApp && generatedOrderId){
-    console.log("Reminder: Order not sent to WhatsApp");
-  }
-});
-
-/* CUSTOM PROMPT FOR EXIT */
+/* CUSTOM MODAL FOR EXIT */
 function showExitPrompt(){
-  if(!orderSentToWhatsApp){
-    document.getElementById("exitPrompt").style.display="flex";
-  }
+  document.getElementById("exitPrompt").style.display="flex";
 }
 function closePrompt(){
   document.getElementById("exitPrompt").style.display="none";
@@ -396,9 +378,20 @@ function sendFromPrompt(){
   sendToWhatsApp();
 }
 
-/* OPTIONAL: Detect if user tries to leave */
-document.addEventListener("visibilitychange", function(){
-  if(document.visibilityState === "hidden" && !orderSentToWhatsApp && generatedOrderId){
+/* INTERCEPT INTERNAL NAVIGATION */
+function attemptLeave(){
+  if(!orderSentToWhatsApp){
+    showExitPrompt();
+  } else {
+    window.location.href='index.html';
+  }
+}
+
+/* PERSISTENT REMINDER */
+window.addEventListener("load", ()=>{
+  const reminder = JSON.parse(localStorage.getItem("unsentOrderReminder"));
+  if(reminder && reminder.orderId){
+    generatedOrderId = reminder.orderId;
     showExitPrompt();
   }
 });
