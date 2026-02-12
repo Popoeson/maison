@@ -275,9 +275,8 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let subtotal = 0;
 let total = 0;
 let generatedOrderId = "";
-let orderSentToWhatsApp = false;
 
-/* CALCULATE TOTAL */
+/* ---------------- CALCULATE TOTAL ---------------- */
 function calculateTotals(){
   subtotal = cart.reduce((sum,item)=>sum + item.price * item.quantity,0);
   let delivery = document.getElementById("deliveryMode").value === "door" ? DELIVERY_FEE : 0;
@@ -290,12 +289,12 @@ function calculateTotals(){
 document.getElementById("deliveryMode").addEventListener("change", calculateTotals);
 calculateTotals();
 
-/* GENERATE ORDER ID */
+/* ---------------- GENERATE ORDER ID ---------------- */
 function generateOrderId(){
   return "MAISON-" + Math.random().toString(36).substring(2,8).toUpperCase();
 }
 
-/* PAYSTACK PAYMENT */
+/* ---------------- PAYSTACK PAYMENT ---------------- */
 async function payNow(){
   const email = document.getElementById("email").value;
   const name = document.getElementById("name").value;
@@ -325,32 +324,31 @@ async function payNow(){
   handler.openIframe();
 }
 
-/* VERIFY PAYMENT */
+/* ---------------- VERIFY PAYMENT ---------------- */
 async function verifyPayment(reference){
   const response = await fetch(`${API_BASE}/api/paystack/verify/${reference}`);
   const data = await response.json();
 
   if(data.status === "success"){
-    localStorage.removeItem("cart");
 
     document.getElementById("checkoutCard").style.display="none";
     document.getElementById("successBox").style.display="block";
     document.getElementById("orderIdDisplay").innerText = "Order ID: " + generatedOrderId;
 
-    // Save reminder for unsent order
-    localStorage.setItem("unsentOrderReminder", JSON.stringify({
-      orderId: generatedOrderId,
-      total: total,
-      timestamp: Date.now()
-    }));
+    // Mark order as pending
+    localStorage.setItem("pendingOrder","true");
 
-    // Push new state to track back button
-    history.pushState({checkout:true}, "", location.href);
+    // Optional: store basic order data
+    localStorage.setItem("maisonOrderData", JSON.stringify({
+      orderId: generatedOrderId,
+      total: total
+    }));
   }
 }
 
-/* SEND TO WHATSAPP */
-function sendToWhatsApp(){
+/* ---------------- SEND TO WHATSAPP ---------------- */
+async function sendToWhatsApp(){
+
   let message = `NEW MAISON ORDER\n\n`;
   message += `Order ID: ${generatedOrderId}\n`;
   message += `Name: ${document.getElementById("name").value}\n`;
@@ -359,22 +357,26 @@ function sendToWhatsApp(){
 
   cart.forEach(item=>{
     message += `${item.name} x${item.quantity} - ₦${item.price}\n`;
-    message += `Image: ${item.image}\n\n`;
   });
 
-  message += `Total: ₦${total.toLocaleString()}`;
+  message += `\nTotal: ₦${total.toLocaleString()}`;
 
-  const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
-  window.open(url,"_blank");
+  window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`,"_blank");
 
-  orderSentToWhatsApp = true;
-  localStorage.removeItem("unsentOrderReminder");
+  // Clear pending state
+  localStorage.removeItem("pendingOrder");
 
-  // Hide exit modal if open
+  // Update backend (mark as sent)
+  await fetch(`${API_BASE}/api/orders/mark-sent`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ orderId: generatedOrderId })
+  });
+
   closePrompt();
 }
 
-/* CUSTOM MODAL FOR EXIT */
+/* ---------------- EXIT MODAL ---------------- */
 function showExitPrompt(){
   document.getElementById("exitPrompt").style.display="flex";
 }
@@ -382,34 +384,23 @@ function closePrompt(){
   document.getElementById("exitPrompt").style.display="none";
 }
 function sendFromPrompt(){
-  closePrompt();
   sendToWhatsApp();
 }
 
-/* INTERCEPT BACK BUTTON & NAVIGATION */
-window.addEventListener("popstate", function(e){
-  if(!orderSentToWhatsApp && generatedOrderId){
-    // Show exit prompt instead of leaving
+/* ---------------- BACK TO HOME ---------------- */
+function attemptLeave(){
+  if(localStorage.getItem("pendingOrder")==="true"){
     showExitPrompt();
-    // Push state again to prevent leaving
-    history.pushState({checkout:true}, "", location.href);
+  }else{
+    window.location.href="index.html";
   }
-});
+}
 
-// Attempt to leave page (desktop browser)
-window.addEventListener("beforeunload", function(e){
-  if(!orderSentToWhatsApp && generatedOrderId){
-    e.preventDefault();
-    e.returnValue = ""; // Chrome requires this to trigger prompt
-  }
-});
-
-/* PERSISTENT REMINDER ON LOAD */
+/* ---------------- REOPEN MODAL IF USER RETURNS ---------------- */
 window.addEventListener("load", ()=>{
-  const reminder = JSON.parse(localStorage.getItem("unsentOrderReminder"));
-  if(reminder && reminder.orderId){
-    generatedOrderId = reminder.orderId;
-    showExitPrompt();
+  if(localStorage.getItem("pendingOrder")==="true"){
+    document.getElementById("successBox").style.display="block";
+    document.getElementById("checkoutCard").style.display="none";
   }
 });
 </script>
