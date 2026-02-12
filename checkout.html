@@ -336,11 +336,16 @@ async function verifyPayment(reference){
     document.getElementById("checkoutCard").style.display="none";
     document.getElementById("successBox").style.display="block";
     document.getElementById("orderIdDisplay").innerText = "Order ID: " + generatedOrderId;
+
+    // Save reminder for unsent order
     localStorage.setItem("unsentOrderReminder", JSON.stringify({
       orderId: generatedOrderId,
       total: total,
       timestamp: Date.now()
     }));
+
+    // Push new state to track back button
+    history.pushState({checkout:true}, "", location.href);
   }
 }
 
@@ -364,6 +369,9 @@ function sendToWhatsApp(){
 
   orderSentToWhatsApp = true;
   localStorage.removeItem("unsentOrderReminder");
+
+  // Hide exit modal if open
+  closePrompt();
 }
 
 /* CUSTOM MODAL FOR EXIT */
@@ -378,16 +386,25 @@ function sendFromPrompt(){
   sendToWhatsApp();
 }
 
-/* INTERCEPT INTERNAL NAVIGATION */
-function attemptLeave(){
-  if(!orderSentToWhatsApp){
+/* INTERCEPT BACK BUTTON & NAVIGATION */
+window.addEventListener("popstate", function(e){
+  if(!orderSentToWhatsApp && generatedOrderId){
+    // Show exit prompt instead of leaving
     showExitPrompt();
-  } else {
-    window.location.href='index.html';
+    // Push state again to prevent leaving
+    history.pushState({checkout:true}, "", location.href);
   }
-}
+});
 
-/* PERSISTENT REMINDER */
+// Attempt to leave page (desktop browser)
+window.addEventListener("beforeunload", function(e){
+  if(!orderSentToWhatsApp && generatedOrderId){
+    e.preventDefault();
+    e.returnValue = ""; // Chrome requires this to trigger prompt
+  }
+});
+
+/* PERSISTENT REMINDER ON LOAD */
 window.addEventListener("load", ()=>{
   const reminder = JSON.parse(localStorage.getItem("unsentOrderReminder"));
   if(reminder && reminder.orderId){
@@ -395,7 +412,6 @@ window.addEventListener("load", ()=>{
     showExitPrompt();
   }
 });
-
 </script>
 
 </body>
