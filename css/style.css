@@ -166,3 +166,5 @@ main.wide { max-width: 980px; }
 }
 .toast.err { background: #b91c1c; }
 .toast[hidden] { display: none; }
+
+.banner.info { background: #dbeafe; color: #1d4ed8; }
