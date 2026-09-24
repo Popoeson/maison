@@ -25,4 +25,4 @@ submissionSchema.index(
   { unique: true, collation: { locale: 'en', strength: 2 } }
 );
 
-module.exports = mongoose.model('Submission', submissionSchema);
+module.exports = mongoose.model('Submission', submissionSchema, 'student_doc_submissions');
