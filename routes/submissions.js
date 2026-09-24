@@ -144,15 +144,13 @@ router.delete('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'Invalid id.' });
     const doc = await Submission.findById(req.params.id);
-    if (!doc) return res.status(404).json({ error: 'Submission not found.' });
-    if (doc.status === 'deleted') return res.json(doc);
+    if (!doc) return res.json({ ok: true, id: req.params.id }); // already gone
 
+    // If Cloudinary fails, this throws and the record is kept, so nothing is orphaned
     await removeFromCloudinary(doc.documents.map(d => d.publicId), `student-docs/${doc._id}`);
+    await doc.deleteOne();
 
-    doc.status = 'deleted';
-    doc.deletedAt = new Date();
-    await doc.save();
-    res.json(doc);
+    res.json({ ok: true, id: req.params.id });
   } catch (err) { next(err); }
 });
 
