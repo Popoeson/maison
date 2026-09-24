@@ -19,10 +19,11 @@ async function waitForServer() {
       const timer = setTimeout(() => ctrl.abort(), 8000);
       const res = await fetch(API_BASE + '/api/health', { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(timer);
-      if (res.ok) { gate.hidden = true; return true; }
-    } catch (e) { /* server still waking up */ }
-    await sleep(3000);
-  }
+     if (res.ok) {
+        gate.hidden = true;
+        window.dispatchEvent(new Event('server-ready'));
+        return true;
+      }
 
   spinner.hidden = true;
   text.textContent = 'Server not responding.';
