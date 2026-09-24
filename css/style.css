@@ -168,3 +168,6 @@ main.wide { max-width: 980px; }
 .toast[hidden] { display: none; }
 
 .banner.info { background: #dbeafe; color: #1d4ed8; }
+
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { padding: 10px 6px; font-size: 14px; }
