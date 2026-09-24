@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Receiver - Student Documents</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Loading gate: covers the page until the server is live -->
+  <div id="gate" class="gate">
+    <div class="spinner"></div>
+    <p id="gateText">Connecting to server...</p>
+    <button id="gateRetry" class="btn" hidden>Retry</button>
+  </div>
+
+  <main class="wide">
+    <div class="r-head">
+      <h1>Received Submissions</h1>
+      <div class="folder-box">
+        <span>Save to: <strong id="folderLabel">No folder chosen</strong></span>
+        <button id="pickFolder" class="btn small">Choose folder</button>
+      </div>
+    </div>
+
+    <div id="unsupported" class="banner err" hidden>
+      This browser cannot save folders to your computer. Please open this page in Google Chrome or Microsoft Edge.
+    </div>
+
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Search student name...">
+      <select id="filter">
+        <option value="all">All</option>
+        <option value="submitted">New</option>
+        <option value="downloaded">Downloaded</option>
+        <option value="deleted">Deleted</option>
+      </select>
+      <button id="refreshBtn" class="btn small">Refresh</button>
+      <button id="downloadAll" class="btn small go">Download all new</button>
+    </div>
+
+    <p id="summary" class="summary"></p>
+    <div id="list"></div>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Full-screen image viewer -->
+  <div id="viewer" class="viewer" hidden>
+    <div class="viewer-bar">
+      <span id="viewerCap"></span>
+      <button id="viewerClose" class="viewer-close" aria-label="Close">✕</button>
+    </div>
+    <div id="viewerStage" class="viewer-stage">
+      <img id="viewerImg" alt="Document preview">
+    </div>
+    <p class="viewer-hint">Click the image to zoom</p>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/receiver.js"></script>
+</body>
+</html>
