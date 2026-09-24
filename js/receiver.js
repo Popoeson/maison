@@ -159,10 +159,52 @@ function render() {
     : '<p class="empty">No submissions to show.</p>';
 }
 
+// Fallback for browsers that cannot write folders: builds a ZIP that
+// extracts to "<Student Name>/<documents>"
+async function downloadZip(list, zipName) {
+  list.forEach((s) => { busy.add(s._id); progress.set(s._id, 'Preparing...'); });
+  render();
+
+  try {
+    const zip = new JSZip();
+    for (const s of list) {
+      for (let i = 0; i < s.documents.length; i++) {
+        const d = s.documents[i];
+        progress.set(s._id, `Fetching ${i + 1}/${s.documents.length}...`);
+        render();
+        const res = await fetch(d.url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Could not fetch ${d.fileName} for ${s.folderName}`);
+        zip.file(`${s.folderName}/${d.fileName}`, await res.blob());
+      }
+    }
+
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = zipName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+
+    for (const s of list) {
+      const r = await fetch(`${API_BASE}/api/submissions/${s._id}/downloaded`, { method: 'PATCH' });
+      if (r.ok) replaceSubmission(await r.json());
+    }
+    return true;
+  } catch (e) {
+    toast(e.message || 'Download failed.', true);
+    return false;
+  } finally {
+    list.forEach((s) => { busy.delete(s._id); progress.delete(s._id); });
+    render();
+  }
+}
+
 // ---------- actions ----------
 async function downloadOne(s) {
+  if (!HAS_FOLDER_API) return downloadZip([s], `${s.folderName}.zip`);
   if (!(await ensureRoot())) return false;
-
   busy.add(s._id);
   progress.set(s._id, 'Starting...');
   render();
@@ -229,8 +271,15 @@ async function deleteOne(s) {
 async function downloadAllNew() {
   const pending = visible().filter((s) => s.status === 'submitted');
   if (!pending.length) return toast('No new submissions to download.');
-  if (!(await ensureRoot())) return;
 
+  if (!HAS_FOLDER_API) {
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+    const ok = await downloadZip(pending, `New students ${stamp}.zip`);
+    if (ok) toast(`Downloaded ${pending.length} students in one ZIP.`);
+    return;
+  }
+
+  if (!(await ensureRoot())) return;
   let ok = 0;
   for (const s of pending) {
     if (await downloadOne(s)) ok++;
@@ -263,10 +312,12 @@ filterEl.onchange = render;
 
 // ---------- init ----------
 (async function init() {
-  if (!window.showDirectoryPicker) {
-    $('unsupported').hidden = false;
-    $('pickFolder').disabled = true;
-    $('downloadAll').disabled = true;
+  if (!HAS_FOLDER_API) {
+    const b = $('unsupported');
+    b.className = 'banner info';
+    b.textContent = 'Your browser will download each student as a ZIP file. Extract it to get the student\'s folder. For direct folder saving without ZIP, use Chrome or Edge on a computer.';
+    b.hidden = false;
+    document.querySelector('.folder-box').hidden = true;
   } else {
     try { rootHandle = (await dbGet('root')) || null; } catch (e) { rootHandle = null; }
     showFolder();
