@@ -103,7 +103,7 @@ function card(s) {
       : (s.status === 'downloaded' ? 'Download again' : 'Download');
     actions = `
       <button class="btn small ${s.status === 'downloaded' ? '' : 'blue'}" data-act="download" data-id="${s._id}" ${isBusy ? 'disabled' : ''}>${dlText}</button>
-      <button class="btn small danger" data-act="delete" data-id="${s._id}" ${isBusy ? 'disabled' : ''}>Delete files</button>`;
+      <button class="btn small danger" data-act="delete" data-id="${s._id}" ${isBusy ? 'disabled' : ''}>Delete</button>`;
   }
 
   const docs = s.status === 'deleted' ? '' : `
