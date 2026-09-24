@@ -237,10 +237,13 @@ filterEl.onchange = render;
 // ---------- init ----------
 (function init() {
   const b = $('unsupported');
-  b.className = 'banner info';
-  b.textContent = "Each student downloads as a ZIP file. Extract it to get the student's folder.";
-  b.hidden = false;
-  document.querySelector('.folder-box').hidden = true;
+  if (b) {
+    b.className = 'banner info';
+    b.textContent = "Each student downloads as a ZIP file. Extract it to get the student's folder.";
+    b.hidden = false;
+  }
+  const box = document.querySelector('.folder-box');
+  if (box) box.hidden = true;
 })();
 
 // Load the list once the server is live, then refresh quietly every 20 seconds
