@@ -185,7 +185,7 @@ async function deleteOne(s) {
   const warning = s.status === 'downloaded'
     ? ''
     : '\n\nWARNING: this student has NOT been downloaded yet. The files cannot be recovered.';
-  if (!confirm(`Delete ${s.folderName}'s files from cloud storage?${warning}`)) return;
+  if (!confirm(`Delete ${s.folderName} permanently?${warning}`)) return;
 
   busy.add(s._id);
   progress.set(s._id, 'Deleting...');
@@ -193,8 +193,8 @@ async function deleteOne(s) {
   try {
     const r = await fetch(`${API_BASE}/api/submissions/${s._id}`, { method: 'DELETE' });
     if (!r.ok) throw new Error('Delete failed.');
-    replaceSubmission(await r.json());
-    toast(`${s.folderName}: files deleted.`);
+    submissions = submissions.filter((x) => x._id !== s._id);
+    toast(`${s.folderName} deleted.`);
   } catch (e) {
     toast(`${s.folderName}: ${e.message}`, true);
   } finally {
