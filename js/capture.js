@@ -89,11 +89,15 @@ function createSlot(index) {
     <div class="slot-body">
       <div class="thumb">No photo</div>
       <div class="slot-info">
-        <button type="button" class="btn cap">📷 Capture</button>
+        <div class="btn-row">
+          <button type="button" class="btn cap">📷 Camera</button>
+          <button type="button" class="btn pick">📁 Choose file</button>
+        </div>
         <p class="msg"></p>
       </div>
     </div>
-    <input type="file" accept="image/*" capture="environment" hidden>
+    <input type="file" accept="image/*" capture="environment" class="f-cam" hidden>
+    <input type="file" accept="image/*" class="f-pick" hidden>
   `;
 
   const select = el.querySelector('.type');
@@ -102,15 +106,17 @@ function createSlot(index) {
   select.value = slot.type;
 
   const custom = el.querySelector('.custom');
-  const fileInput = el.querySelector('input[type="file"]');
+  const camInput = el.querySelector('.f-cam');
+  const pickInput = el.querySelector('.f-pick');
   const capBtn = el.querySelector('.cap');
+  const pickBtn = el.querySelector('.pick');
   const thumb = el.querySelector('.thumb');
   const msg = el.querySelector('.msg');
 
   slot.el = el;
   slot.setMsg = (text, cls = '') => { msg.textContent = text; msg.className = 'msg ' + cls; };
   slot.setLocked = (locked) => {
-    select.disabled = custom.disabled = capBtn.disabled = locked;
+    select.disabled = custom.disabled = capBtn.disabled = pickBtn.disabled = locked;
   };
   slot.clear = () => {
     if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
@@ -131,11 +137,17 @@ function createSlot(index) {
     updateSubmit();
   };
   custom.oninput = () => { slot.custom = custom.value; updateSubmit(); };
-  capBtn.onclick = () => { fileInput.value = ''; fileInput.click(); };
 
-  fileInput.onchange = async () => {
-    const file = fileInput.files[0];
+  capBtn.onclick = () => { camInput.value = ''; camInput.click(); };
+  pickBtn.onclick = () => { pickInput.value = ''; pickInput.click(); };
+
+  // Same processing for a camera photo or a chosen file
+  async function handleFile(file) {
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      slot.setMsg('Please choose an image (JPG, PNG or a photo).', 'err');
+      return;
+    }
     slot.busy = true;
     slot.clear();
     thumb.textContent = '...';
@@ -146,7 +158,7 @@ function createSlot(index) {
     try {
       const blob = await compressToLimit(file);
       if (!blob) {
-        slot.setMsg(`Could not get under ${MAX_FILE_KB} KB. Please retake, closer and in good light.`, 'err');
+        slot.setMsg(`Could not get under ${MAX_FILE_KB} KB. Please try a clearer or smaller image.`, 'err');
         thumb.textContent = 'No photo';
       } else {
         slot.blob = blob;
@@ -155,15 +167,17 @@ function createSlot(index) {
         thumb.style.background = `url(${slot.previewUrl}) center/cover`;
         thumb.classList.add('has-photo');
         slot.setMsg(`${(blob.size / 1024).toFixed(1)} KB ✓  Tap the photo to view it`, 'ok');
-        capBtn.textContent = '🔄 Retake';
       }
     } catch (e) {
-      slot.setMsg(e.message || 'Something went wrong. Please retake.', 'err');
+      slot.setMsg(e.message || 'Something went wrong. Please try again.', 'err');
       thumb.textContent = 'No photo';
     }
     slot.busy = false;
     updateSubmit();
-  };
+  }
+
+  camInput.onchange = () => handleFile(camInput.files[0]);
+  pickInput.onchange = () => handleFile(pickInput.files[0]);
 
   return slot;
 }
