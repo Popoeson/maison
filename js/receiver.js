@@ -4,10 +4,8 @@ const searchEl = $('search');
 const filterEl = $('filter');
 
 let submissions = [];
-let rootHandle = null;
 const busy = new Set();
 const progress = new Map();
-const HAS_FOLDER_API = false;
 
 // ---------- helpers ----------
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
@@ -23,59 +21,22 @@ function toast(text, isErr = false) {
   toastTimer = setTimeout(() => (t.hidden = true), isErr ? 6000 : 3000);
 }
 
-// ---------- remember the chosen folder (IndexedDB) ----------
-function openDb() {
-  return new Promise((res, rej) => {
-    const r = indexedDB.open('receiver-db', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('kv');
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
-async function dbGet(key) {
-  const db = await openDb();
-  return new Promise((res, rej) => {
-    const q = db.transaction('kv').objectStore('kv').get(key);
-    q.onsuccess = () => res(q.result);
-    q.onerror = () => rej(q.error);
-  });
-}
-async function dbSet(key, value) {
-  const db = await openDb();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('kv', 'readwrite');
-    tx.objectStore('kv').put(value, key);
-    tx.oncomplete = () => res();
-    tx.onerror = () => rej(tx.error);
-  });
-}
-
-function showFolder() {
-  $('folderLabel').textContent = rootHandle ? rootHandle.name : 'No folder chosen';
-}
-
-async function chooseFolder() {
-  try {
-    const handle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'student-docs' });
-    rootHandle = handle;
-    await dbSet('root', handle);
-    showFolder();
-    return true;
-  } catch (e) {
-    if (e.name !== 'AbortError') toast('Could not open that folder: ' + e.message, true);
-    return false;
-  }
-}
-
-// Makes sure we have a folder and permission to write into it
-async function ensureRoot() {
-  if (!rootHandle) return chooseFolder();
-  let perm = await rootHandle.queryPermission({ mode: 'readwrite' });
-  if (perm !== 'granted') perm = await rootHandle.requestPermission({ mode: 'readwrite' });
-  return perm === 'granted' ? true : chooseFolder();
+function saveBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
 
 // ---------- data ----------
+function replaceSubmission(updated) {
+  const i = submissions.findIndex((s) => s._id === updated._id);
+  if (i >= 0) submissions[i] = updated;
+}
+
 async function loadList(silent = false) {
   let data;
   try {
@@ -100,6 +61,24 @@ async function loadList(silent = false) {
   }
 }
 
+// Tells the server the student was downloaded. Survives browser download
+// interruptions (keepalive) and retries once.
+async function markDownloaded(s) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(`${API_BASE}/api/submissions/${s._id}/downloaded`, {
+        method: 'PATCH',
+        keepalive: true
+      });
+      if (r.ok) return await r.json();
+    } catch (e) {
+      console.error('Mark downloaded failed:', e);
+    }
+    await sleep(1000);
+  }
+  return null;
+}
+
 // ---------- render ----------
 function visible() {
   const q = searchEl.value.trim().toLowerCase();
@@ -112,14 +91,16 @@ function visible() {
 
 function card(s) {
   const isBusy = busy.has(s._id);
-  const label = { submitted: 'New', downloaded: 'Downloaded', deleted: 'Deleted' }[s.status];
+  const label = { submitted: 'New', downloaded: 'Downloaded', deleted: 'Deleted' }[s.status] || s.status;
   const when = new Date(s.submittedAt).toLocaleString();
   const dl = s.downloadedAt ? ` · Downloaded ${new Date(s.downloadedAt).toLocaleString()}` : '';
   const times = s.downloadCount > 1 ? ` (${s.downloadCount}x)` : '';
 
   let actions = '';
   if (s.status !== 'deleted') {
-    const dlText = isBusy ? (progress.get(s._id) || 'Working...') : (s.status === 'downloaded' ? 'Download again' : 'Download');
+    const dlText = isBusy
+      ? (progress.get(s._id) || 'Working...')
+      : (s.status === 'downloaded' ? 'Download again' : 'Download');
     actions = `
       <button class="btn small ${s.status === 'downloaded' ? '' : 'blue'}" data-act="download" data-id="${s._id}" ${isBusy ? 'disabled' : ''}>${dlText}</button>
       <button class="btn small danger" data-act="delete" data-id="${s._id}" ${isBusy ? 'disabled' : ''}>Delete files</button>`;
@@ -159,8 +140,8 @@ function render() {
     : '<p class="empty">No submissions to show.</p>';
 }
 
-// Fallback for browsers that cannot write folders: builds a ZIP that
-// extracts to "<Student Name>/<documents>"
+// ---------- actions ----------
+// Builds a ZIP that extracts to "<Student Name>/<documents>"
 async function downloadZip(list, zipName) {
   list.forEach((s) => { busy.add(s._id); progress.set(s._id, 'Preparing...'); });
   render();
@@ -179,68 +160,23 @@ async function downloadZip(list, zipName) {
     }
 
     const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = zipName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    saveBlob(blob, zipName);
 
+    let failed = 0;
     for (const s of list) {
-      const r = await fetch(`${API_BASE}/api/submissions/${s._id}/downloaded`, { method: 'PATCH' });
-      if (r.ok) replaceSubmission(await r.json());
+      const updated = await markDownloaded(s);
+      if (updated) replaceSubmission(updated); else failed++;
+    }
+    if (failed) {
+      toast(`ZIP downloaded, but the status of ${failed} student(s) could not be updated. Tap Refresh to check.`, true);
     }
     return true;
   } catch (e) {
+    console.error('Download failed:', e);
     toast(e.message || 'Download failed.', true);
     return false;
   } finally {
     list.forEach((s) => { busy.delete(s._id); progress.delete(s._id); });
-    render();
-  }
-}
-
-// ---------- actions ----------
-async function downloadOne(s) {
-  if (!HAS_FOLDER_API) return downloadZip([s], `${s.folderName}.zip`);
-  if (!(await ensureRoot())) return false;
-  busy.add(s._id);
-  progress.set(s._id, 'Starting...');
-  render();
-
-  try {
-    const dir = await rootHandle.getDirectoryHandle(s.folderName, { create: true });
-
-    for (let i = 0; i < s.documents.length; i++) {
-      const d = s.documents[i];
-      progress.set(s._id, `Saving ${i + 1}/${s.documents.length}...`);
-      render();
-
-      const res = await fetch(d.url, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Could not fetch ${d.fileName}`);
-      const blob = await res.blob();
-
-      const fileHandle = await dir.getFileHandle(d.fileName, { create: true });
-      const w = await fileHandle.createWritable();
-      await w.write(blob);
-      await w.close();
-    }
-
-    const r = await fetch(`${API_BASE}/api/submissions/${s._id}/downloaded`, { method: 'PATCH' });
-    if (!r.ok) throw new Error('Files saved, but the status could not be updated.');
-    replaceSubmission(await r.json());
-    return true;
-  } catch (e) {
-    const msg = e.name === 'NotFoundError'
-      ? 'The download folder is no longer available. Please choose it again.'
-      : e.message;
-    if (e.name === 'NotFoundError') { rootHandle = null; showFolder(); }
-    toast(`${s.folderName}: ${msg}`, true);
-    return false;
-  } finally {
-    busy.delete(s._id);
-    progress.delete(s._id);
     render();
   }
 }
@@ -271,20 +207,9 @@ async function deleteOne(s) {
 async function downloadAllNew() {
   const pending = visible().filter((s) => s.status === 'submitted');
   if (!pending.length) return toast('No new submissions to download.');
-
-  if (!HAS_FOLDER_API) {
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-    const ok = await downloadZip(pending, `New students ${stamp}.zip`);
-    if (ok) toast(`Downloaded ${pending.length} students in one ZIP.`);
-    return;
-  }
-
-  if (!(await ensureRoot())) return;
-  let ok = 0;
-  for (const s of pending) {
-    if (await downloadOne(s)) ok++;
-  }
-  toast(`Downloaded ${ok} of ${pending.length} students.`, ok !== pending.length);
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+  const ok = await downloadZip(pending, `New students ${stamp}.zip`);
+  if (ok) toast(`Downloaded ${pending.length} students in one ZIP.`);
 }
 
 // ---------- events ----------
@@ -298,13 +223,12 @@ listEl.addEventListener('click', (e) => {
     const d = s.documents[Number(el.dataset.i)];
     openViewer(d.url, `${s.folderName} · ${d.type} · ${d.sizeKB} KB`);
   } else if (el.dataset.act === 'download') {
-    downloadOne(s);
+    downloadZip([s], `${s.folderName}.zip`);
   } else if (el.dataset.act === 'delete') {
     deleteOne(s);
   }
 });
 
-$('pickFolder').onclick = chooseFolder;
 $('refreshBtn').onclick = () => loadList();
 $('downloadAll').onclick = downloadAllNew;
 searchEl.oninput = render;
