@@ -7,6 +7,7 @@ let submissions = [];
 let rootHandle = null;
 const busy = new Set();
 const progress = new Map();
+const HAS_FOLDER_API = typeof window.showDirectoryPicker === 'function';
 
 // ---------- helpers ----------
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
