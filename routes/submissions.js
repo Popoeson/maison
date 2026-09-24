@@ -118,8 +118,16 @@ router.post('/', upload.array('files', 20), async (req, res, next) => {
 });
 
 // ---------- LIST ----------
+/* router.get('/', async (req, res, next) => {
+  try {
+    const submissions = await Submission.find().sort({ submittedAt: -1 }).lean();
+    res.json(submissions);
+  } catch (err) { next(err); }
+}); */
+
 router.get('/', async (req, res, next) => {
   try {
+    await Submission.deleteMany({ status: 'deleted' }); // one-time cleanup, remove after first load
     const submissions = await Submission.find().sort({ submittedAt: -1 }).lean();
     res.json(submissions);
   } catch (err) { next(err); }
