@@ -76,19 +76,27 @@ async function ensureRoot() {
 
 // ---------- data ----------
 async function loadList(silent = false) {
+  let data;
   try {
     const res = await fetch(API_BASE + '/api/submissions', { cache: 'no-store' });
     if (!res.ok) throw new Error('Server error');
-    submissions = await res.json();
-    render();
+    data = await res.json();
   } catch (e) {
     if (!silent) toast('Could not load submissions. Check your connection and tap Refresh.', true);
+    return;
   }
-}
 
-function replaceSubmission(updated) {
-  const i = submissions.findIndex((s) => s._id === updated._id);
-  if (i >= 0) submissions[i] = updated;
+  // keep only records created by this system
+  submissions = (Array.isArray(data) ? data : []).filter(
+    (s) => s && s._id && s.folderName && Array.isArray(s.documents)
+  );
+
+  try {
+    render();
+  } catch (e) {
+    console.error('Render error:', e);
+    if (!silent) toast('Loaded, but could not display the list. See console.', true);
+  }
 }
 
 // ---------- render ----------
