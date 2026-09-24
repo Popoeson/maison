@@ -7,7 +7,7 @@ let submissions = [];
 let rootHandle = null;
 const busy = new Set();
 const progress = new Map();
-const HAS_FOLDER_API = typeof window.showDirectoryPicker === 'function';
+const HAS_FOLDER_API = false;
 
 // ---------- helpers ----------
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
@@ -311,17 +311,12 @@ searchEl.oninput = render;
 filterEl.onchange = render;
 
 // ---------- init ----------
-(async function init() {
-  if (!HAS_FOLDER_API) {
-    const b = $('unsupported');
-    b.className = 'banner info';
-    b.textContent = 'Your browser will download each student as a ZIP file. Extract it to get the student\'s folder. For direct folder saving without ZIP, use Chrome or Edge on a computer.';
-    b.hidden = false;
-    document.querySelector('.folder-box').hidden = true;
-  } else {
-    try { rootHandle = (await dbGet('root')) || null; } catch (e) { rootHandle = null; }
-    showFolder();
-  }
+(function init() {
+  const b = $('unsupported');
+  b.className = 'banner info';
+  b.textContent = "Each student downloads as a ZIP file. Extract it to get the student's folder.";
+  b.hidden = false;
+  document.querySelector('.folder-box').hidden = true;
 })();
 
 // Load the list once the server is live, then refresh quietly every 20 seconds
