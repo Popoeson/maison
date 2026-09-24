@@ -89,14 +89,10 @@ function createSlot(index) {
     <div class="slot-body">
       <div class="thumb">No photo</div>
       <div class="slot-info">
-        <div class="btn-row">
-          <button type="button" class="btn cap">📷 Camera</button>
-          <button type="button" class="btn pick">📁 Choose file</button>
-        </div>
+        <button type="button" class="btn pick">📁 Choose file</button>
         <p class="msg"></p>
       </div>
     </div>
-    <input type="file" accept="image/*" capture="environment" class="f-cam" hidden>
     <input type="file" accept="image/*" class="f-pick" hidden>
   `;
 
@@ -106,9 +102,7 @@ function createSlot(index) {
   select.value = slot.type;
 
   const custom = el.querySelector('.custom');
-  const camInput = el.querySelector('.f-cam');
   const pickInput = el.querySelector('.f-pick');
-  const capBtn = el.querySelector('.cap');
   const pickBtn = el.querySelector('.pick');
   const thumb = el.querySelector('.thumb');
   const msg = el.querySelector('.msg');
@@ -116,12 +110,13 @@ function createSlot(index) {
   slot.el = el;
   slot.setMsg = (text, cls = '') => { msg.textContent = text; msg.className = 'msg ' + cls; };
   slot.setLocked = (locked) => {
-    select.disabled = custom.disabled = capBtn.disabled = pickBtn.disabled = locked;
+    select.disabled = custom.disabled = pickBtn.disabled = locked;
   };
   slot.clear = () => {
     if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
     slot.blob = null; slot.previewUrl = null;
     thumb.classList.remove('has-photo');
+    pickBtn.textContent = '📁 Choose file';
   };
 
   // Tap the thumbnail to view the photo full screen
@@ -138,11 +133,10 @@ function createSlot(index) {
   };
   custom.oninput = () => { slot.custom = custom.value; updateSubmit(); };
 
-  capBtn.onclick = () => { camInput.value = ''; camInput.click(); };
   pickBtn.onclick = () => { pickInput.value = ''; pickInput.click(); };
 
-  // Same processing for a camera photo or a chosen file
-  async function handleFile(file) {
+  pickInput.onchange = async () => {
+    const file = pickInput.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       slot.setMsg('Please choose an image (JPG, PNG or a photo).', 'err');
@@ -166,6 +160,7 @@ function createSlot(index) {
         thumb.textContent = '';
         thumb.style.background = `url(${slot.previewUrl}) center/cover`;
         thumb.classList.add('has-photo');
+        pickBtn.textContent = '🔄 Change file';
         slot.setMsg(`${(blob.size / 1024).toFixed(1)} KB ✓  Tap the photo to view it`, 'ok');
       }
     } catch (e) {
@@ -174,10 +169,7 @@ function createSlot(index) {
     }
     slot.busy = false;
     updateSubmit();
-  }
-
-  camInput.onchange = () => handleFile(camInput.files[0]);
-  pickInput.onchange = () => handleFile(pickInput.files[0]);
+  };
 
   return slot;
 }
