@@ -44,11 +44,12 @@ async function bestUnder(canvas, limit, minQ) {
 
 // Keeps the largest dimensions possible while staying readable,
 // only dropping quality below 0.5 if nothing else fits.
-async function compressToLimit(file) {
+async function compressToLimit(file, docType) {
   const img = await loadImage(file);
-  const limit = MAX_FILE_KB * 1024 * TARGET_FRACTION;
+  const limitKB = limitKBFor(docType);
+  const limit = limitKB * 1024 * TARGET_FRACTION;
   const w0 = img.naturalWidth, h0 = img.naturalHeight;
-  const dims = [1600, 1400, 1200, 1000, 850, 700, 600, 500, 400, 320];
+  const dims = [1600, 1400, 1200, 1000, 850, 700, 600, 500, 400, 320, 260, 220];
 
   for (const minQ of [0.5, 0.3]) {
     const tried = new Set();
@@ -142,6 +143,7 @@ function createSlot(index) {
       slot.setMsg('Please choose an image (JPG, PNG or a photo).', 'err');
       return;
     }
+    const limitKB = limitKBFor(docLabel(slot));
     slot.busy = true;
     slot.clear();
     thumb.textContent = '...';
@@ -150,9 +152,9 @@ function createSlot(index) {
     updateSubmit();
 
     try {
-      const blob = await compressToLimit(file);
+      const blob = await compressToLimit(file, docLabel(slot));
       if (!blob) {
-        slot.setMsg(`Could not get under ${MAX_FILE_KB} KB. Please try a clearer or smaller image.`, 'err');
+        slot.setMsg(`Could not get under ${limitKB} KB. Please try a clearer or smaller image.`, 'err');
         thumb.textContent = 'No photo';
       } else {
         slot.blob = blob;
