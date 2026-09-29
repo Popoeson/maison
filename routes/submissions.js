@@ -3,7 +3,7 @@ const multer = require('multer');
 const mongoose = require('mongoose');
 const cloudinary = require('../config/cloudinary');
 const Submission = require('../models/Submission');
-const { MAX_FILE_KB, MAX_FILE_BYTES } = require('../config/limits');
+const { MAX_FILE_KB, MAX_FILE_BYTES, limitForType } = require('../config/limits');
 
 const router = express.Router();
 
