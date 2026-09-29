@@ -73,15 +73,15 @@ router.post('/', upload.array('files', 20), async (req, res, next) => {
     if (!files.length || files.length !== types.length) {
       return res.status(400).json({ error: 'Each document needs a type and a file.' });
     }
-    for (const f of files) {
-      if (f.mimetype !== 'image/jpeg') {
+    for (let i = 0; i < files.length; i++) {
+      const limitKB = limitForType(types[i]);
+      if (files[i].mimetype !== 'image/jpeg') {
         return res.status(400).json({ error: 'Only JPG files are accepted.' });
       }
-      if (f.size > MAX_FILE_BYTES) {
-        return res.status(400).json({ error: `Each file must be ${MAX_FILE_KB} KB or less.` });
+      if (files[i].size > limitKB * 1024) {
+        return res.status(400).json({ error: `${types[i] || 'This document'} must be ${limitKB} KB or less.` });
       }
     }
-
     const folderName = await uniqueFolderName(studentName);
     const usedLabels = new Map();
     const documents = [];
