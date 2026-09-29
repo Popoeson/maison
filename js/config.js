@@ -1,5 +1,5 @@
 // Your Render backend URL (no trailing slash)
-const API_BASE = 'https://your-backend.onrender.com';
+const API_BASE = 'https://maison-90o3.onrender.com';
 
 // Must match config/limits.js on the server. Change both together.
 const PASSPORT_MAX_KB = 15;
