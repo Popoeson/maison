@@ -127,9 +127,12 @@ function createSlot(index) {
     }
   };
 
-  select.onchange = () => {
+select.onchange = () => {
     slot.type = select.value;
     custom.hidden = slot.type !== 'Other';
+    if (slot.blob && slot.type === 'Passport' && slot.blob.size > PASSPORT_MAX_KB * 1024) {
+      slot.setMsg(`This photo is above ${PASSPORT_MAX_KB} KB for a passport. Please choose the file again.`, 'err');
+    }
     updateSubmit();
   };
   custom.oninput = () => { slot.custom = custom.value; updateSubmit(); };
