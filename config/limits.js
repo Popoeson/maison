@@ -1,7 +1,7 @@
 // Passport gets a stricter limit; everything else shares the general one.
 // Change these two numbers if the requirement changes again.
 const PASSPORT_MAX_KB = 15;
-const OTHER_MAX_KB = 50;
+const OTHER_MAX_KB = 500;
 
 function limitForType(type) {
   return (type || '').trim().toLowerCase() === 'passport' ? PASSPORT_MAX_KB : OTHER_MAX_KB;
